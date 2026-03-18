@@ -32,10 +32,9 @@ async function login() {
 
     try {
         await auth.signInWithEmailAndPassword(email, pass);
-        
-        // അഡ്മിൻ ചെക്കിംഗ് (admin111 അല്ലെങ്കിൽ 313456)
         if (inputVal === "admin111" || inputVal === "313456") {
             showSection('admin-screen');
+            loadAdminQueries(); // അഡ്മിൻ ലോഡ് ചെയ്യുമ്പോൾ സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു
         } else {
             showSection('student-screen');
             initStudentApp();
@@ -56,7 +55,7 @@ function showSection(id) {
     if (target) target.style.display = 'block';
 }
 
-// 2. ADMIN: ചോദ്യങ്ങൾ ചേർക്കുക
+// 2. ADMIN: ചോദ്യങ്ങൾ മാനേജ് ചെയ്യാൻ
 async function addQuestionToDB() {
     const text = document.getElementById('q-text-input').value;
     const options = [
@@ -76,49 +75,79 @@ async function addQuestionToDB() {
         await db.collection("questions").add({
             text, options, correctIndex: correctIdx, timestamp: Date.now()
         });
-        alert("ചോദ്യം ഡਾറ്റാബേസിൽ സേവ് ചെയ്തു!");
+        alert("ചോദ്യം സേവ് ചെയ്തു!");
         document.getElementById('q-text-input').value = "";
         options.forEach((_, i) => document.getElementById('opt'+i).value = "");
     } catch (e) { alert("Error: ചോദ്യം ചേർക്കാൻ കഴിഞ്ഞില്ല."); }
 }
 
-// 3. ADMIN: ക്ലാസുകൾ/ലിങ്കുകൾ അപ്‌ലോഡ് ചെയ്യുക
-async function uploadContent() {
-    const title = document.getElementById('content-title').value;
-    const url = document.getElementById('content-url').value;
-    const type = document.getElementById('content-type').value;
+async function loadAdminQuestions() {
+    const listDiv = document.getElementById('admin-questions-list');
+    listDiv.innerHTML = "Loading Questions...";
+    const snap = await db.collection("questions").orderBy("timestamp", "asc").get();
+    if (snap.empty) { listDiv.innerHTML = "ചോദ്യങ്ങൾ ഒന്നും ലഭ്യമല്ല."; return; }
 
-    if (!title || !url) {
-        alert("ദയവായി ടൈറ്റിലും ലിങ്കും നൽകുക!");
-        return;
+    listDiv.innerHTML = snap.docs.map(doc => {
+        const q = doc.data();
+        return `<div class="card" style="margin-bottom:10px; border-left: 5px solid #ffd700; padding:10px;">
+            <p><strong>Q: ${q.text}</strong></p>
+            <div style="display:flex; gap:10px;">
+                <button onclick="deleteQuestion('${doc.id}')" class="btn-off" style="padding:5px 10px;">Delete</button>
+                <button onclick="editQuestionPrompt('${doc.id}', \`${q.text}\`)" class="primary-btn" style="padding:5px 10px; width:auto;">Edit</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+async function deleteQuestion(id) {
+    if(confirm("ഈ ചോദ്യം ഡിലീറ്റ് ചെയ്യട്ടെ?")) {
+        await db.collection("questions").doc(id).delete();
+        loadAdminQuestions();
     }
+}
+
+async function editQuestionPrompt(id, oldText) {
+    const newText = prompt("പുതിയ ചോദ്യം ടൈപ്പ് ചെയ്യുക:", oldText);
+    if (newText && newText !== oldText) {
+        await db.collection("questions").doc(id).update({ text: newText });
+        loadAdminQuestions();
+    }
+}
+
+async function deleteAllQuestions() {
+    if(confirm("മൊത്തം ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യട്ടെ?")) {
+        const snap = await db.collection("questions").get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("എല്ലാ ചോദ്യങ്ങളും നീക്കം ചെയ്തു.");
+    }
+}
+
+// 3. ADMIN: ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യാൻ
+async function uploadDetailedContent() {
+    const subject = document.getElementById('content-subject').value;
+    const date = document.getElementById('content-date').value;
+    const time = document.getElementById('content-time').value;
+    const instr = document.getElementById('content-instructions').value;
+    const video = document.getElementById('link-video').value;
+    const audio = document.getElementById('link-audio').value;
+    const pdf = document.getElementById('link-pdf').value;
+
+    if (!subject || !date) { alert("വിഷയവും തീയതിയും നിർബന്ധമാണ്!"); return; }
 
     try {
         await db.collection("contents").add({
-            title: title,
-            url: url,
-            type: type,
+            subject, date, time, instructions: instr,
+            links: { video, audio, pdf },
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
-        document.getElementById('content-title').value = "";
-        document.getElementById('content-url').value = "";
-    } catch (e) {
-        alert("Error: " + e.message);
-    }
+        alert("ക്ലാസ് വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
+        document.querySelectorAll('.admin-form input, .admin-form textarea').forEach(i => i.value = "");
+    } catch (e) { alert("Error: " + e.message); }
 }
 
-// 4. ADMIN: പരീക്ഷാ നിയന്ത്രണം
-function toggleExam(status) {
-    db.collection("settings").doc("examMode").set({ active: status })
-    .then(() => alert("പരീക്ഷാ മോഡ്: " + (status ? "തുടങ്ങി" : "അവസാനിപ്പിച്ചു")));
-}
-
-function publishResult(status) {
-    db.collection("settings").doc("resultSettings").set({ published: status })
-    .then(() => alert(status ? "റിസൾട്ട് പബ്ലിഷ് ചെയ്തു." : "റിസൾട്ട് ഹൈഡ് ചെയ്തു."));
-}
-
+// 4. ADMIN: റിസൾട്ട് മാനേജ്‌മെന്റ്
 async function fetchResults() {
     const body = document.getElementById('results-body');
     if(!body) return;
@@ -126,15 +155,74 @@ async function fetchResults() {
     const snap = await db.collection("results").orderBy("timestamp", "desc").get();
     body.innerHTML = snap.docs.map(doc => {
         const d = doc.data();
-        const time = d.timestamp ? new Date(d.timestamp.seconds*1000).toLocaleDateString() : '-';
-        return `<tr><td>${d.email}</td><td>${d.score}</td><td>${time}</td></tr>`;
+        return `<tr>
+            <td>${d.email}</td>
+            <td>${d.score}</td>
+            <td><button onclick="viewUserDetail('${doc.id}')" class="primary-btn" style="padding:5px; font-size:12px;">Details</button></td>
+        </tr>`;
     }).join('');
 }
 
-// 5. STUDENT: ആപ്പ് ഇനീഷ്യലൈസേഷൻ
+async function viewUserDetail(id) {
+    const doc = await db.collection("results").doc(id).get();
+    const data = doc.data();
+    let report = `വിദ്യാർത്ഥി: ${data.email}\n\n`;
+    if(data.details) {
+        data.details.forEach((item, i) => {
+            report += `${i+1}. ${item.question}\n Ans: ${item.selected} ${item.isCorrect ? '✅' : '❌'}\n`;
+        });
+    } else { report += "വിശദാംശങ്ങൾ ലഭ്യമല്ല."; }
+    alert(report);
+}
+
+async function clearAllResults() {
+    if(confirm("എല്ലാ റിസൾട്ടുകളും ഡിലീറ്റ് ചെയ്യട്ടെ?")) {
+        const snap = await db.collection("results").get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        fetchResults();
+    }
+}
+
+// 5. STUDENT & ADMIN: സംശയങ്ങൾ (Queries)
+async function askQuery(contentId, subject) {
+    const text = prompt(`${subject} - എന്ന വിഷയത്തിലെ സംശയം ടൈപ്പ് ചെയ്യുക:`);
+    if(!text) return;
+    await db.collection("queries").add({
+        contentId, studentEmail: auth.currentUser.email,
+        question: text, reply: "", timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("സംശയം അയച്ചു.");
+}
+
+function loadAdminQueries() {
+    const list = document.getElementById('admin-queries-list');
+    if(!list) return;
+    db.collection("queries").orderBy("timestamp", "desc").onSnapshot(snap => {
+        list.innerHTML = snap.docs.map(doc => {
+            const q = doc.data();
+            return `<div class="card" style="font-size:0.9rem;">
+                <p><strong>From:</strong> ${q.studentEmail}</p>
+                <p><strong>Q:</strong> ${q.question}</p>
+                <p><strong>Reply:</strong> ${q.reply || 'Pending'}</p>
+                <input type="text" id="rep-${doc.id}" placeholder="മറുപടി നൽകുക">
+                <button onclick="sendReply('${doc.id}')" class="primary-btn" style="padding:5px; margin-top:5px; width:auto;">Reply</button>
+            </div>`;
+        }).join('');
+    });
+}
+
+async function sendReply(id) {
+    const replyText = document.getElementById(`rep-${id}`).value;
+    if(!replyText) return;
+    await db.collection("queries").doc(id).update({ reply: replyText });
+    alert("മറുപടി അയച്ചു!");
+}
+
+// 6. STUDENT: ആപ്പ് ലോജിക്
 function initStudentApp() {
-    loadContents(); // ക്ലാസുകൾ ലോഡ് ചെയ്യുന്നു
-    
+    loadContents();
     db.collection("settings").doc("examMode").onSnapshot(doc => {
         const data = doc.data();
         if (data && data.active === true) {
@@ -144,42 +232,38 @@ function initStudentApp() {
         } else {
             document.getElementById('class-list').style.display = 'block';
             document.getElementById('exam-box').style.display = 'none';
-            questions = [];
             checkResultPublished();
         }
     });
 }
 
-// ഡ്രൈവ് ഫോൾഡറിന് പുറമെ അഡ്മിൻ നൽകുന്ന ലിങ്കുകൾ കാണിക്കാൻ
 function loadContents() {
-    db.collection("contents").orderBy("timestamp", "desc").onSnapshot(snap => {
+    db.collection("contents").orderBy("date", "desc").onSnapshot(snap => {
         const display = document.getElementById('content-display');
         if (!display) return;
-        if (snap.empty) {
-            display.innerHTML = "മറ്റ് ക്ലാസുകൾ ലഭ്യമല്ല.";
-            return;
-        }
         display.innerHTML = snap.docs.map(doc => {
             const data = doc.data();
-            let icon = data.type === 'video' ? '📺' : (data.type === 'audio' ? '🎵' : '📄');
-            return `
-                <div class="card" style="margin-bottom:10px; border-left: 5px solid #00796b; padding: 15px;">
-                    <h4 style="margin:0 0 10px 0;">${icon} ${data.title}</h4>
-                    <a href="${data.url}" target="_blank" class="primary-btn" style="text-decoration:none; display:inline-block; width:auto; padding:8px 20px; font-size: 0.9rem;">Open Link</a>
-                </div>`;
+            const l = data.links;
+            return `<div class="card" style="border-top: 5px solid #004d40; margin-bottom: 20px;">
+                <h3>${data.subject}</h3>
+                <p style="font-size:0.8rem; color:gray;">${data.date} | ${data.time || ''}</p>
+                <p><i>${data.instructions || ''}</i></p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top:10px;">
+                    ${l.video ? `<a href="${l.video}" target="_blank" class="part-btn" style="background:#d32f2f;">Video</a>` : ''}
+                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="part-btn" style="background:#0288d1;">Audio</a>` : ''}
+                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="part-btn" style="background:#e64a19;">PDF</a>` : ''}
+                </div>
+                <button onclick="askQuery('${doc.id}', '${data.subject}')" class="primary-btn" style="margin-top:15px; background:#607d8b;">സംശയങ്ങൾ ചോദിക്കാൻ</button>
+            </div>`;
         }).join('');
     });
 }
 
-// 6. STUDENT: എക്സാം ലോജിക്
+// 7. EXAM LOGIC
 async function startExam() {
     const snap = await db.collection("questions").orderBy("timestamp").get();
     questions = snap.docs.map(d => d.data());
-    if(questions.length > 0) {
-        currentQIndex = 0;
-        score = 0;
-        showQuestion();
-    }
+    if(questions.length > 0) { currentQIndex = 0; score = 0; showQuestion(); }
 }
 
 function showQuestion() {
@@ -195,8 +279,9 @@ function showQuestion() {
         btn.className = 'option-btn';
         btn.innerText = opt;
         btn.onclick = () => { 
+            q.userSelectedOption = opt; // മറുപടി സേവ് ചെയ്യുന്നു
             if(idx === q.correctIndex) score++; 
-            nextQuestion(); 
+            currentQIndex++; showQuestion(); 
         };
         container.appendChild(btn);
     });
@@ -209,21 +294,23 @@ function startTimer() {
     timer = setInterval(() => {
         time--;
         document.getElementById('timer').innerText = `00:${time < 10 ? '0'+time : time}`;
-        if (time <= 0) nextQuestion();
+        if (time <= 0) { currentQIndex++; showQuestion(); }
     }, 1000);
 }
-
-function nextQuestion() { currentQIndex++; showQuestion(); }
 
 async function finishExam() {
     clearInterval(timer);
     const user = auth.currentUser;
+    const userAnswers = questions.map(q => ({
+        question: q.text, selected: q.userSelectedOption || "No Answer",
+        correct: q.options[q.correctIndex], isCorrect: q.userSelectedOption === q.options[q.correctIndex]
+    }));
+
     await db.collection("results").doc(user.uid).set({
-        email: user.email,
-        score: score,
+        email: user.email, score: score, details: userAnswers,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-    alert("പരീക്ഷ അവസാനിച്ചു. ഉത്തരങ്ങൾ സേവ് ചെയ്തു.");
+    alert("പരീക്ഷ അവസാനിച്ചു.");
     location.reload();
 }
 
@@ -237,10 +324,18 @@ function checkResultPublished() {
                 resultCard.style.display = 'block';
                 document.getElementById('user-score').innerText = `${res.data().score} / ${questions.length || 100}`;
             }
-        } else {
-            if (resultCard) resultCard.style.display = 'none';
         }
     });
+}
+
+function toggleExam(status) {
+    db.collection("settings").doc("examMode").set({ active: status })
+    .then(() => alert("പരീക്ഷാ മോഡ് മാറ്റി."));
+}
+
+function publishResult(status) {
+    db.collection("settings").doc("resultSettings").set({ published: status })
+    .then(() => alert("റിസൾട്ട് പബ്ലിഷ് സെറ്റിംഗ്സ് മാറ്റി."));
 }
 
 function logout() { auth.signOut(); location.reload(); }
