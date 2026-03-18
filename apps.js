@@ -1,11 +1,11 @@
 // ഫയർബേസ് കോൺഫിഗറേഷൻ (നിങ്ങളുടെ സ്വന്തം കീ ഇവിടെ നൽകുക)
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "your-app.firebaseapp.com",
-    projectId: "your-app",
-    storageBucket: "your-app.appspot.com",
-    messagingSenderId: "...",
-    appId: "..."
+    apiKey: "AIzaSyC_3sUPqvJufOVAtQtefW0eZnIfVUhj-KE",
+    authDomain: "sjm-chettippadi.firebaseapp.com",
+    projectId: "sjm-chettippadi",
+    storageBucket: "sjm-chettippadi.firebasestorage.app",
+    messagingSenderId: "950539718846",
+    appId: "1:950539718846:web:5aa95755e1fa3a47100eef"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
