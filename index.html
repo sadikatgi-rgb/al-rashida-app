@@ -29,13 +29,14 @@
         <div id="admin-screen" class="container" style="display:none;">
             <div class="card">
                 <h3>Admin Control Panel</h3>
+                
                 <div class="status-controls">
                     <button onclick="toggleExam(true)" class="btn-on">Start Exam</button>
                     <button onclick="toggleExam(false)" class="btn-off">End Exam</button>
                 </div>
                 
                 <hr>
-                <h4>1. ചോദ്യങ്ങൾ ചേർക്കുക</h4>
+                <h4>1. ചോദ്യങ്ങൾ ചേർക്കുക & നിയന്ത്രിക്കുക</h4>
                 <div class="admin-form">
                     <textarea id="q-text-input" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
                     <input type="text" id="opt0" placeholder="Option 1">
@@ -51,35 +52,49 @@
                     </select>
                     <button onclick="addQuestionToDB()" class="primary-btn">Save Question</button>
                 </div>
+                <button onclick="loadAdminQuestions()" class="primary-btn" style="margin-top:10px; background:#607d8b;">ചോദ്യങ്ങൾ കാണുക / Edit</button>
+                <button onclick="deleteAllQuestions()" class="btn-off" style="width:100%; margin-top:5px;">എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യുക</button>
+                <div id="admin-questions-list" style="margin-top:10px;"></div>
 
                 <hr>
-                <h4>2. ക്ലാസുകൾ / ഫയലുകൾ ചേർക്കുക</h4>
+                <h4>2. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
                 <div class="admin-form">
-                    <input type="text" id="content-title" placeholder="പാഠത്തിന്റെ പേര് (Title)">
-                    <input type="text" id="content-url" placeholder="ലിങ്ക് (YouTube Link / Google Drive Link)">
-                    <select id="content-type">
-                        <option value="video">YouTube Video</option>
-                        <option value="audio">Audio File (Link)</option>
-                        <option value="pdf">PDF Document (Link)</option>
-                    </select>
-                    <button onclick="uploadContent()" class="primary-btn">Upload Content</button>
-                    <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">* ഡ്രൈവ് ഫോൾഡറിൽ ഫയൽ ഇട്ടാൽ അത് തനിയെ താഴെ കാണുന്ന ലൈബ്രറിയിൽ വരും.</p>
+                    <input type="text" id="content-subject" placeholder="വിഷയം (eg: ഫിഖ്ഹ്)">
+                    <input type="date" id="content-date">
+                    <input type="time" id="content-time">
+                    <textarea id="content-instructions" placeholder="നിർദ്ദേശങ്ങൾ (eg: വീഡിയോ കണ്ട് നോട്ട് എഴുതുക...)" rows="2"></textarea>
+                    
+                    <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px dashed #ccc;">
+                        <p style="font-size:0.8rem; margin:0 0 5px 0;">ലിങ്കുകൾ നൽകുക:</p>
+                        <input type="text" id="link-video" placeholder="YouTube Link">
+                        <input type="text" id="link-audio" placeholder="Audio Drive Link">
+                        <input type="text" id="link-pdf" placeholder="PDF Drive Link">
+                    </div>
+                    <button onclick="uploadDetailedContent()" class="primary-btn" style="margin-top:10px;">Upload Class</button>
                 </div>
 
                 <hr>
-                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <h4>3. കുട്ടികളുടെ സംശയങ്ങൾ (Queries)</h4>
+                <div id="admin-queries-list">
+                    <p style="font-size:0.8rem; color:gray;">സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു...</p>
+                </div>
+
+                <hr>
+                <h4>4. പരീക്ഷാ ഫലങ്ങൾ</h4>
                 <div class="status-controls">
                     <button onclick="publishResult(true)" class="btn-on">Publish Results</button>
                     <button onclick="publishResult(false)" class="btn-off">Hide Results</button>
                 </div>
-                <button onclick="fetchResults()" class="primary-btn" style="margin-top: 10px;">Refresh List</button>
-                <div class="table-container" style="margin-top:15px; overflow-x:auto;">
-                    <table id="results-table" style="width:100%; border-collapse: collapse;">
+                <button onclick="fetchResults()" class="primary-btn" style="margin-top: 10px;">Refresh Mark List</button>
+                <button onclick="clearAllResults()" class="btn-off" style="width:100%; margin-top:5px;">Clear All Results</button>
+                
+                <div class="table-container" style="margin-top:15px;">
+                    <table>
                         <thead>
                             <tr style="background:#004d40; color:white;">
-                                <th style="padding:10px; border:1px solid #ddd;">വിദ്യാർത്ഥി</th>
-                                <th style="padding:10px; border:1px solid #ddd;">മാർക്ക്</th>
-                                <th style="padding:10px; border:1px solid #ddd;">സമയം</th>
+                                <th>വിദ്യാർത്ഥി</th>
+                                <th>മാർക്ക്</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="results-body"></tbody>
@@ -91,30 +106,30 @@
         <div id="student-screen" class="container" style="display:none;">
             <div id="student-result-card" class="card result-card" style="display:none;">
                 <h3>നിങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
-                <h1 id="user-score">0 / 100</h1>
+                <h1 id="user-score">0 / 0</h1>
                 <p>അൽ റാഷിദ ഓൺലൈൻ ദർസ് പരീക്ഷയിൽ പങ്കെടുത്തതിന് നന്ദി.</p>
             </div>
 
             <div id="class-list">
-                <h3>നിങ്ങളുടെ ക്ലാസുകൾ (Library)</h3>
-                <div class="card" style="padding: 0; overflow: hidden; border: 2px solid #004d40;">
+                <h3>നിങ്ങളുടെ ക്ലാസുകൾ</h3>
+                <div class="card" style="padding: 0; overflow: hidden; border: 2px solid #004d40; margin-bottom:20px;">
                     <iframe 
                         src="https://drive.google.com/embeddedfolderview?id=10HHMFs4MJiSVQbrxRzzcpOGkjAVeE6cPlRqIDlp5xCuh75YRJSZ3-WGGFcraVDqw7BTbXaaC#list" 
                         width="100%" 
-                        height="500" 
+                        height="400" 
                         frameborder="0">
                     </iframe>
                 </div>
-                <div id="content-display" style="margin-top: 10px;"></div>
+                <div id="content-display"></div>
             </div>
 
             <div id="exam-box" style="display:none;">
                 <div class="exam-header">
                     <span id="timer">00:30</span>
-                    <span id="q-progress">ചോദ്യം 1/100</span>
+                    <span id="q-progress">ചോദ്യം ലോഡ് ചെയ്യുന്നു...</span>
                 </div>
                 <div id="question-card" class="card">
-                    <p id="question-text" style="font-weight:bold; font-size:1.1rem;">ചോദ്യം ലോഡ് ചെയ്യുന്നു...</p>
+                    <p id="question-text" style="font-weight:bold; font-size:1.1rem;"></p>
                     <div id="options-list"></div>
                 </div>
             </div>
