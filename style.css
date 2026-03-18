@@ -1,234 +1,246 @@
-/* 1. അടിസ്ഥാന നിറങ്ങളും സെറ്റിംഗ്സും (Variables) */
+/* 1. അടിസ്ഥാന നിറങ്ങളും സെറ്റിംഗ്സും */
 :root { 
-    --main: #004d40;     /* ഡാർക്ക് ഗ്രീൻ */
-    --sec: #00796b;      /* മീഡിയം ഗ്രീൻ */
-    --gold: #ffd700;     /* ഗോൾഡ് ബോർഡർ */
-    --bg: #f5f5f5;       /* ലൈറ്റ് ഗ്രേ ബാക്ക്ഗ്രൗണ്ട് */
+    --main: #004d40;     
+    --sec: #00796b;      
+    --gold: #ffd700;     
+    --bg: #f8f9fa;       
     --white: #ffffff;
-    --danger: #c62828;   /* റെഡ് (നിർത്താൻ) */
-    --success: #2e7d32;  /* ഗ്രീൻ (തുടങ്ങാൻ) */
-    --border: #ddd;
-    --text: #333;
+    --danger: #c62828;   
+    --success: #2e7d32;  
+    --border: #dee2e6;
+    --text: #212529;
 }
 
 body { 
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
     background: var(--bg); 
     margin: 0; 
     color: var(--text);
-    line-height: 1.6;
+    transition: margin-left .5s; /* സൈഡ്ബാറിനായി */
 }
 
-/* 2. ഹെഡർ ഭാഗം */
+/* 2. സൈഡ് മെനു (Sidebar) */
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 2000;
+    top: 0;
+    left: 0;
+    background-color: var(--main);
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+}
+
+.sidebar-header {
+    padding: 20px;
+    font-size: 1.5rem;
+    color: var(--gold);
+    font-weight: bold;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 10px;
+}
+
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 1.1rem;
+    color: #ecf0f1;
+    display: block;
+    transition: 0.3s;
+    border-left: 4px solid transparent;
+}
+
+.sidebar a:hover {
+    background: var(--sec);
+    border-left: 4px solid var(--gold);
+    color: white;
+}
+
+.sidebar .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+/* 3. ഹെഡർ */
 header { 
     background: var(--main); 
     color: white; 
-    padding: 12px 20px; 
+    padding: 10px 15px; 
     display: flex; 
-    justify-content: space-between; 
     align-items: center; 
     border-bottom: 4px solid var(--gold); 
     position: sticky;
     top: 0;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-.logo-area { display: flex; align-items: center; }
+.openbtn {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: transparent;
+    color: white;
+    padding: 10px;
+    border: none;
+    margin-right: 10px;
+}
 
-.logo-icon { 
-    background: var(--gold); 
-    color: black; 
-    padding: 6px 10px; 
-    border-radius: 50%; 
-    font-weight: bold; 
-    margin-right: 10px; 
+.logo-area h1 { 
+    font-size: 1rem; 
+    margin: 0; 
+    text-transform: uppercase; 
+    letter-spacing: 1px;
+}
+
+/* 4. ഹോം സ്ക്രീൻ - സെമസ്റ്റർ കാർഡുകൾ */
+.semester-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.sem-card {
+    background: var(--white);
+    padding: 25px 15px;
+    border-radius: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 6px solid var(--gold);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.sem-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    background: #fffdf0;
+}
+
+.sem-card img {
+    width: 70px;
+    height: 70px;
+    margin-bottom: 15px;
+    object-fit: contain;
+}
+
+.sem-card h3 {
+    margin: 0;
     font-size: 1.1rem;
+    color: var(--main);
 }
 
-h1 { font-size: 0.95rem; margin: 0; letter-spacing: 0.5px; text-transform: uppercase; }
-
-/* 3. കണ്ടെയ്നറുകളും കാർഡുകളും */
-.container { padding: 15px; padding-bottom: 80px; }
+/* 5. കണ്ടെയ്നറുകളും കാർഡുകളും */
+.container { padding: 20px; padding-bottom: 80px; }
 
 .card { 
     background: var(--white); 
-    margin: 15px auto; 
-    padding: 20px; 
+    margin: 10px auto; 
+    padding: 25px; 
     width: 100%; 
-    max-width: 600px; 
-    border-radius: 12px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.06); 
+    max-width: 550px; 
+    border-radius: 15px; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
     box-sizing: border-box;
-    transition: transform 0.2s;
 }
 
-hr { border: 0; border-top: 1px solid #eee; margin: 25px 0; }
-
-/* 4. ഇൻപുട്ടുകളും ബട്ടണുകളും */
+/* 6. ഫോം എലമെന്റുകൾ */
 input, select, textarea { 
     width: 100%; 
-    padding: 12px; 
-    margin: 8px 0; 
-    border: 1px solid #ccc; 
-    border-radius: 8px; 
-    box-sizing: border-box; 
-    font-size: 0.95rem;
-    font-family: inherit;
+    padding: 14px; 
+    margin: 10px 0; 
+    border: 1px solid #ced4da; 
+    border-radius: 10px; 
+    font-size: 1rem;
 }
-
-textarea { resize: vertical; }
 
 .primary-btn { 
     background: var(--sec); 
     color: white; 
     border: none; 
     width: 100%; 
-    padding: 14px; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    font-size: 1rem; 
-    font-weight: bold;
-    transition: 0.3s;
-    margin-top: 5px;
-}
-
-.primary-btn:hover { background: var(--main); }
-
-/* 5. അഡ്മിൻ കൺട്രോളുകൾ */
-.status-controls { 
-    display: flex; 
-    gap: 10px;
-    margin-bottom: 15px; 
-}
-
-.status-controls button { 
-    flex: 1;
-    padding: 12px; 
-    border: none; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    color: white; 
-    font-weight: bold;
-    font-size: 0.85rem;
-}
-
-.btn-on { background: var(--success); }
-.btn-on:hover { background: #1b5e20; }
-.btn-off { background: var(--danger); }
-.btn-off:hover { background: #b71c1c; }
-
-/* 6. ടേബിൾ ഡിസൈൻ */
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    border-radius: 8px;
-    margin-top: 10px;
-    border: 1px solid var(--border);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-}
-
-th, td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.9rem;
-}
-
-th { background: #f8f9fa; color: var(--main); font-weight: bold; }
-
-/* 7. ക്ലാസ് ഡിസ്‌പ്ലേ (Student View) */
-.part-btn {
-    flex: 1;
-    min-width: 80px;
-    text-align: center;
-    padding: 10px;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: bold;
-    display: inline-block;
-}
-
-#content-display .card {
-    border-top: 4px solid var(--main);
-}
-
-#content-display h3 {
-    margin: 0;
-    color: var(--main);
-    font-size: 1.2rem;
-}
-
-/* സംശയങ്ങൾ ചോദിക്കാനുള്ള ബോക്സ് */
-.query-card {
-    background: #f1f8e9;
-    border-left: 4px solid var(--success);
-}
-
-/* 8. പരീക്ഷാ ഭാഗം */
-.exam-header { 
-    display: flex; 
-    justify-content: space-between; 
-    padding: 12px 20px; 
-    font-weight: bold; 
-    color: var(--danger); 
-    background: #fff;
-    border-radius: 8px;
-    margin: 10px auto;
-    max-width: 600px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.option-btn { 
-    display: block; 
-    width: 100%; 
     padding: 15px; 
-    margin: 10px 0; 
-    background: #f8f9fa; 
-    border: 1px solid #ddd; 
     border-radius: 10px; 
     cursor: pointer; 
-    text-align: left; 
-    font-size: 1rem;
+    font-size: 1.1rem; 
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.primary-btn:hover { background: var(--main); transform: scale(1.01); }
+
+/* 7. സ്റ്റുഡന്റ് ക്ലാസ് ഡിസ്‌പ്ലേ */
+.class-parts {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.part-btn {
+    padding: 10px 15px;
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    flex: 1;
+    text-align: center;
+    background: var(--main);
+}
+
+/* 8. പരീക്ഷാ സെക്ഷൻ */
+.exam-header {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    border-left: 5px solid var(--danger);
+}
+
+.option-btn {
+    width: 100%;
+    padding: 16px;
+    margin: 12px 0;
+    background: #fdfdfd;
+    border: 1.5px solid #eee;
+    border-radius: 12px;
+    text-align: left;
+    font-size: 1.05rem;
+    cursor: pointer;
     transition: 0.2s;
 }
 
-.option-btn:hover { 
-    background: #e0f2f1; 
-    border-color: var(--sec); 
+.option-btn:hover {
+    background: #e0f2f1;
+    border-color: var(--sec);
 }
 
-/* 9. ലോഗൗട്ട് ബട്ടൺ */
-#logout-btn {
-    background: rgba(255,255,255,0.15);
-    border: 1px solid white;
-    color: white;
-    padding: 5px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 0.75rem;
-}
+/* 9. സ്റ്റാറ്റസ് ബട്ടണുകൾ */
+.status-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+.btn-on { background: var(--success); color: white; border: none; padding: 12px; border-radius: 8px; flex: 1; cursor: pointer; font-weight: bold; }
+.btn-off { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 8px; flex: 1; cursor: pointer; font-weight: bold; }
 
-/* 10. ക്വസ്റ്റ്യൻ എഡിറ്റ് ഏരിയ (Admin) */
-#admin-questions-list .card {
-    border-left: 4px solid var(--gold);
-    padding: 15px;
-    font-size: 0.9rem;
-}
+/* 10. ടേബിൾ */
+.table-container { overflow-x: auto; margin-top: 15px; border-radius: 10px; border: 1px solid var(--border); }
+table { width: 100%; border-collapse: collapse; background: white; }
+th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--border); }
+th { background: #f8f9fa; color: var(--main); }
 
-/* മൊബൈൽ മാറ്റങ്ങൾ */
+/* റെസ്പോൺസീവ് */
 @media (max-width: 480px) {
-    .container { padding: 10px; }
-    .card { padding: 15px; }
-    h1 { font-size: 0.8rem; }
-    .status-controls { flex-direction: column; }
-    .status-controls button { width: 100%; }
-    .logo-icon { padding: 4px 8px; font-size: 1rem; }
+    .semester-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .sem-card { padding: 15px 10px; }
+    .sem-card img { width: 50px; height: 50px; }
+    h1 { font-size: 0.85rem; }
 }
