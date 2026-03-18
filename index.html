@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AL RASHIDA ONLINE DARS</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="app">
+        <header>
+            <div class="logo-section">
+                <div class="logo">RD</div>
+                <h1>AL RASHIDA ONLINE DARS</h1>
+            </div>
+            <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+        </header>
+
+        <div id="login-screen" class="container">
+            <div class="card">
+                <h2>Login</h2>
+                <input type="email" id="email" placeholder="Email">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="login()" class="btn-primary">Login</button>
+            </div>
+        </div>
+
+        <div id="admin-screen" class="container" style="display:none;">
+            <div class="card">
+                <h3>Admin Control Panel</h3>
+                <div class="admin-actions">
+                    <button onclick="toggleExam(true)" class="btn-danger">Start Exam (Lock App)</button>
+                    <button onclick="toggleExam(false)" class="btn-success">End Exam (Unlock App)</button>
+                </div>
+                
+                <hr>
+                <h4>1. ചോദ്യങ്ങൾ ചേർക്കുക (Add Quiz)</h4>
+                <div class="admin-form">
+                    <textarea id="q-text-input" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
+                    <input type="text" id="opt0" placeholder="Option 1">
+                    <input type="text" id="opt1" placeholder="Option 2">
+                    <input type="text" id="opt2" placeholder="Option 3">
+                    <input type="text" id="opt3" placeholder="Option 4">
+                    <p>ശരിയായ ഉത്തരം ഏതാണ്?</p>
+                    <select id="correct-idx-input">
+                        <option value="0">Option 1</option>
+                        <option value="1">Option 2</option>
+                        <option value="2">Option 3</option>
+                        <option value="3">Option 4</option>
+                    </select>
+                    <button onclick="addQuestionToDB()" class="btn-primary" style="margin-top:10px;">Save Question</button>
+                </div>
+
+                <hr>
+                <h4>2. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
+                <input type="text" id="content-title" placeholder="Title">
+                <input type="text" id="content-url" placeholder="Video/Audio URL">
+                <select id="content-type">
+                    <option value="video">YouTube Video</option>
+                    <option value="audio">Audio Link</option>
+                </select>
+                <button onclick="uploadContent()" class="btn-primary">Upload</button>
+
+                <hr>
+                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <div class="admin-actions">
+                    <button onclick="publishResult(true)" class="btn-success">Publish Results Now</button>
+                    <button onclick="publishResult(false)" class="btn-danger">Hide Results</button>
+                </div>
+                <button onclick="fetchResults()" class="btn-primary" style="margin-top: 10px;">Refresh Student List</button>
+                <div class="table-container">
+                    <table id="results-table">
+                        <thead>
+                            <tr><th>വിദ്യാർത്ഥി</th><th>മാർക്ക്</th><th>സമയം</th></tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="student-screen" class="container" style="display:none;">
+            <div id="student-result-card" class="card" style="display:none; border: 2px solid #1a5f7a;">
+                <h3>നിങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
+                <h1 id="user-score">0 / 100</h1>
+                <p>അൽ റാഷിദ ഓൺലൈൻ ദർസ് പരീക്ഷയിൽ പങ്കെടുത്തതിന് നന്ദി.</p>
+            </div>
+
+            <div id="class-list">
+                <h3>നിങ്ങളുടെ ക്ലാസുകൾ</h3>
+                <div id="content-display"></div>
+            </div>
+
+            <div id="exam-box" style="display:none;">
+                <div class="exam-header">
+                    <span id="timer">00:30</span>
+                    <span id="q-progress">ചോദ്യം 1/100</span>
+                </div>
+                <div id="question-card" class="card">
+                    <p id="question-text">ചോദ്യം ലോഡ് ചെയ്യുന്നു...</p>
+                    <div id="options-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
