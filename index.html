@@ -53,7 +53,21 @@
                 </div>
 
                 <hr>
-                <h4>2. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <h4>2. ക്ലാസുകൾ / ഫയലുകൾ ചേർക്കുക</h4>
+                <div class="admin-form">
+                    <input type="text" id="content-title" placeholder="പാഠത്തിന്റെ പേര് (Title)">
+                    <input type="text" id="content-url" placeholder="ലിങ്ക് (YouTube Link / Google Drive Link)">
+                    <select id="content-type">
+                        <option value="video">YouTube Video</option>
+                        <option value="audio">Audio File (Link)</option>
+                        <option value="pdf">PDF Document (Link)</option>
+                    </select>
+                    <button onclick="uploadContent()" class="primary-btn">Upload Content</button>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">* ഡ്രൈവ് ഫോൾഡറിൽ ഫയൽ ഇട്ടാൽ അത് തനിയെ താഴെ കാണുന്ന ലൈബ്രറിയിൽ വരും.</p>
+                </div>
+
+                <hr>
+                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
                 <div class="status-controls">
                     <button onclick="publishResult(true)" class="btn-on">Publish Results</button>
                     <button onclick="publishResult(false)" class="btn-off">Hide Results</button>
@@ -76,14 +90,22 @@
 
         <div id="student-screen" class="container" style="display:none;">
             <div id="student-result-card" class="card result-card" style="display:none;">
-                <h3>ನಿങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
+                <h3>നിങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
                 <h1 id="user-score">0 / 100</h1>
                 <p>അൽ റാഷിദ ഓൺലൈൻ ദർസ് പരീക്ഷയിൽ പങ്കെടുത്തതിന് നന്ദി.</p>
             </div>
 
             <div id="class-list">
-                <h3>നിങ്ങളുടെ ക്ലാസുകൾ</h3>
-                <div id="content-display" class="card">ക്ലാസുകൾ ലഭ്യമല്ല.</div>
+                <h3>നിങ്ങളുടെ ക്ലാസുകൾ (Library)</h3>
+                <div class="card" style="padding: 0; overflow: hidden; border: 2px solid #004d40;">
+                    <iframe 
+                        src="https://drive.google.com/embeddedfolderview?id=10HHMFs4MJiSVQbrxRzzcpOGkjAVeE6cPlRqIDlp5xCuh75YRJSZ3-WGGFcraVDqw7BTbXaaC#list" 
+                        width="100%" 
+                        height="500" 
+                        frameborder="0">
+                    </iframe>
+                </div>
+                <div id="content-display" style="margin-top: 10px;"></div>
             </div>
 
             <div id="exam-box" style="display:none;">
