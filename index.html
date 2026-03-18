@@ -8,28 +8,63 @@
 </head>
 <body>
 
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div class="sidebar-header">AL RASHIDA</div>
+        <a href="#" onclick="showSection('home-screen'); closeNav();">🏠 Home</a>
+        <a href="#" onclick="showAdminLogin()">🔐 Admin Login</a>
+        <a href="#" onclick="alert('Important Messages functionality coming soon!');">📢 Important Messages</a>
+        <a href="#" onclick="alert('Al Rashida Online Dars - Version 2.0');">ℹ️ App Info</a>
+    </div>
+
     <div id="app">
         <header>
+            <button class="openbtn" onclick="openNav()">&#9776;</button>
             <div class="logo-area">
-                <div class="logo-icon">RD</div>
                 <h1>AL RASHIDA ONLINE DARS</h1>
             </div>
             <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
         </header>
 
-        <div id="login-screen" class="container">
+        <div id="home-screen" class="container">
+            <h2 style="text-align:center; color:#004d40; margin-bottom:20px;">സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക</h2>
+            <div class="semester-grid">
+                <div class="sem-card" onclick="selectSemester(1)">
+                    <div class="logo-icon" style="margin: 0 auto 10px auto;">S1</div>
+                    <h3>Semester 1</h3>
+                </div>
+                <div class="sem-card" onclick="selectSemester(2)">
+                    <div class="logo-icon" style="margin: 0 auto 10px auto;">S2</div>
+                    <h3>Semester 2</h3>
+                </div>
+                <div class="sem-card" onclick="selectSemester(3)">
+                    <div class="logo-icon" style="margin: 0 auto 10px auto;">S3</div>
+                    <h3>Semester 3</h3>
+                </div>
+                <div class="sem-card" onclick="selectSemester(4)">
+                    <div class="logo-icon" style="margin: 0 auto 10px auto;">S4</div>
+                    <h3>Semester 4</h3>
+                </div>
+                <div class="sem-card" onclick="selectSemester(5)">
+                    <div class="logo-icon" style="margin: 0 auto 10px auto;">S5</div>
+                    <h3>Semester 5</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="login-screen" class="container" style="display:none;">
             <div class="card">
-                <h2>Login</h2>
-                <input type="text" id="email" placeholder="Username (eg: admin111)">
+                <h2 id="login-title">Login</h2>
+                <input type="text" id="email" placeholder="Username">
                 <input type="password" id="password" placeholder="Password">
                 <button onclick="login()" class="primary-btn">Login</button>
+                <button onclick="showSection('home-screen')" class="btn-off" style="width:100%; margin-top:10px; background:#666;">Back to Home</button>
             </div>
         </div>
 
         <div id="admin-screen" class="container" style="display:none;">
             <div class="card">
                 <h3>Admin Control Panel</h3>
-                
                 <div class="status-controls">
                     <button onclick="toggleExam(true)" class="btn-on">Start Exam</button>
                     <button onclick="toggleExam(false)" class="btn-off">End Exam</button>
@@ -63,9 +98,7 @@
                     <input type="date" id="content-date">
                     <input type="time" id="content-time">
                     <textarea id="content-instructions" placeholder="നിർദ്ദേശങ്ങൾ (eg: വീഡിയോ കണ്ട് നോട്ട് എഴുതുക...)" rows="2"></textarea>
-                    
                     <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px dashed #ccc;">
-                        <p style="font-size:0.8rem; margin:0 0 5px 0;">ലിങ്കുകൾ നൽകുക:</p>
                         <input type="text" id="link-video" placeholder="YouTube Link">
                         <input type="text" id="link-audio" placeholder="Audio Drive Link">
                         <input type="text" id="link-pdf" placeholder="PDF Drive Link">
@@ -75,9 +108,7 @@
 
                 <hr>
                 <h4>3. കുട്ടികളുടെ സംശയങ്ങൾ (Queries)</h4>
-                <div id="admin-queries-list">
-                    <p style="font-size:0.8rem; color:gray;">സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു...</p>
-                </div>
+                <div id="admin-queries-list"></div>
 
                 <hr>
                 <h4>4. പരീക്ഷാ ഫലങ്ങൾ</h4>
@@ -87,7 +118,6 @@
                 </div>
                 <button onclick="fetchResults()" class="primary-btn" style="margin-top: 10px;">Refresh Mark List</button>
                 <button onclick="clearAllResults()" class="btn-off" style="width:100%; margin-top:5px;">Clear All Results</button>
-                
                 <div class="table-container" style="margin-top:15px;">
                     <table>
                         <thead>
@@ -107,7 +137,6 @@
             <div id="student-result-card" class="card result-card" style="display:none;">
                 <h3>നിങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
                 <h1 id="user-score">0 / 0</h1>
-                <p>അൽ റാഷിദ ഓൺലൈൻ ദർസ് പരീക്ഷയിൽ പങ്കെടുത്തതിന് നന്ദി.</p>
             </div>
 
             <div id="class-list">
@@ -115,9 +144,7 @@
                 <div class="card" style="padding: 0; overflow: hidden; border: 2px solid #004d40; margin-bottom:20px;">
                     <iframe 
                         src="https://drive.google.com/embeddedfolderview?id=10HHMFs4MJiSVQbrxRzzcpOGkjAVeE6cPlRqIDlp5xCuh75YRJSZ3-WGGFcraVDqw7BTbXaaC#list" 
-                        width="100%" 
-                        height="400" 
-                        frameborder="0">
+                        width="100%" height="400" frameborder="0">
                     </iframe>
                 </div>
                 <div id="content-display"></div>
@@ -129,7 +156,7 @@
                     <span id="q-progress">ചോദ്യം ലോഡ് ചെയ്യുന്നു...</span>
                 </div>
                 <div id="question-card" class="card">
-                    <p id="question-text" style="font-weight:bold; font-size:1.1rem;"></p>
+                    <p id="question-text" style="font-weight:bold;"></p>
                     <div id="options-list"></div>
                 </div>
             </div>
