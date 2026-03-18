@@ -18,9 +18,9 @@ let questions = [];
 let timer;
 let score = 0;
 
-// 1. LOGIN FUNCTION (യൂസർനെയിം മാത്രം നൽകിയാൽ മതി)
+// 1. LOGIN FUNCTION
 async function login() {
-    const inputVal = document.getElementById('email').value; // 'admin111' or 'Aslam313'
+    const inputVal = document.getElementById('email').value;
     const pass = document.getElementById('password').value;
 
     if (!inputVal || !pass) {
@@ -28,13 +28,12 @@ async function login() {
         return;
     }
 
-    // യൂസർനെയിമിനെ ഇമെയിൽ രൂപത്തിലേക്ക് മാറ്റുന്നു
     const email = inputVal.includes("@") ? inputVal : inputVal + "@alrashida.com";
 
     try {
         await auth.signInWithEmailAndPassword(email, pass);
         
-        // അഡ്മിൻ ലോഗിൻ പരിശോധന
+        // അഡ്മിൻ ചെക്കിംഗ് (admin111 അല്ലെങ്കിൽ 313456)
         if (inputVal === "admin111" || inputVal === "313456") {
             showSection('admin-screen');
         } else {
@@ -47,7 +46,6 @@ async function login() {
     }
 }
 
-// സെക്ഷനുകൾ മാറ്റാനുള്ള ഫങ്ക്ഷൻ
 function showSection(id) {
     const sections = ['login-screen', 'admin-screen', 'student-screen'];
     sections.forEach(s => {
@@ -58,7 +56,7 @@ function showSection(id) {
     if (target) target.style.display = 'block';
 }
 
-// 2. ADMIN: പുതിയ ചോദ്യം ചേർക്കാൻ
+// 2. ADMIN: ചോദ്യങ്ങൾ ചേർക്കുക
 async function addQuestionToDB() {
     const text = document.getElementById('q-text-input').value;
     const options = [
@@ -76,19 +74,41 @@ async function addQuestionToDB() {
 
     try {
         await db.collection("questions").add({
-            text, 
-            options, 
-            correctIndex: correctIdx, 
-            timestamp: Date.now()
+            text, options, correctIndex: correctIdx, timestamp: Date.now()
         });
-        alert("ചോദ്യം ഡാറ്റാബേസിൽ സേവ് ചെയ്തു!");
-        // ഫോം ക്ലിയർ ചെയ്യാൻ
+        alert("ചോദ്യം ഡਾറ്റാബേസിൽ സേവ് ചെയ്തു!");
         document.getElementById('q-text-input').value = "";
         options.forEach((_, i) => document.getElementById('opt'+i).value = "");
     } catch (e) { alert("Error: ചോദ്യം ചേർക്കാൻ കഴിഞ്ഞില്ല."); }
 }
 
-// 3. ADMIN: പരീക്ഷാ നിയന്ത്രണം
+// 3. ADMIN: ക്ലാസുകൾ/ലിങ്കുകൾ അപ്‌ലോഡ് ചെയ്യുക
+async function uploadContent() {
+    const title = document.getElementById('content-title').value;
+    const url = document.getElementById('content-url').value;
+    const type = document.getElementById('content-type').value;
+
+    if (!title || !url) {
+        alert("ദയവായി ടൈറ്റിലും ലിങ്കും നൽകുക!");
+        return;
+    }
+
+    try {
+        await db.collection("contents").add({
+            title: title,
+            url: url,
+            type: type,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!");
+        document.getElementById('content-title').value = "";
+        document.getElementById('content-url').value = "";
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}
+
+// 4. ADMIN: പരീക്ഷാ നിയന്ത്രണം
 function toggleExam(status) {
     db.collection("settings").doc("examMode").set({ active: status })
     .then(() => alert("പരീക്ഷാ മോഡ്: " + (status ? "തുടങ്ങി" : "അവസാനിപ്പിച്ചു")));
@@ -96,40 +116,69 @@ function toggleExam(status) {
 
 function publishResult(status) {
     db.collection("settings").doc("resultSettings").set({ published: status })
-    .then(() => alert("റിസൾട്ട് പബ്ലിഷ് ചെയ്തു."));
+    .then(() => alert(status ? "റിസൾട്ട് പബ്ലിഷ് ചെയ്തു." : "റിസൾട്ട് ഹൈഡ് ചെയ്തു."));
 }
 
-// 4. STUDENT: പരീക്ഷാ സുരക്ഷാ ക്രമീകരണം
+async function fetchResults() {
+    const body = document.getElementById('results-body');
+    if(!body) return;
+    body.innerHTML = "Loading...";
+    const snap = await db.collection("results").orderBy("timestamp", "desc").get();
+    body.innerHTML = snap.docs.map(doc => {
+        const d = doc.data();
+        const time = d.timestamp ? new Date(d.timestamp.seconds*1000).toLocaleDateString() : '-';
+        return `<tr><td>${d.email}</td><td>${d.score}</td><td>${time}</td></tr>`;
+    }).join('');
+}
+
+// 5. STUDENT: ആപ്പ് ഇനീഷ്യലൈസേഷൻ
 function initStudentApp() {
-    // പരീക്ഷ തുടങ്ങുന്നോ എന്ന് ലൈവ് ആയി ശ്രദ്ധിക്കുന്നു
+    loadContents(); // ക്ലാസുകൾ ലോഡ് ചെയ്യുന്നു
+    
     db.collection("settings").doc("examMode").onSnapshot(doc => {
         const data = doc.data();
-        
         if (data && data.active === true) {
-            // പരീക്ഷ തുടങ്ങിയാൽ ചോദ്യങ്ങൾ ലോഡ് ചെയ്യുക
             document.getElementById('class-list').style.display = 'none';
             document.getElementById('exam-box').style.display = 'block';
             startExam(); 
         } else {
-            // പരീക്ഷാ സമയമല്ലെങ്കിൽ ചോദ്യങ്ങൾ ഡിലീറ്റ് ചെയ്യുക
             document.getElementById('class-list').style.display = 'block';
             document.getElementById('exam-box').style.display = 'none';
-            questions = []; // മെമ്മറി ക്ലിയർ ചെയ്യുന്നു
+            questions = [];
             checkResultPublished();
         }
     });
 }
 
+// ഡ്രൈവ് ഫോൾഡറിന് പുറമെ അഡ്മിൻ നൽകുന്ന ലിങ്കുകൾ കാണിക്കാൻ
+function loadContents() {
+    db.collection("contents").orderBy("timestamp", "desc").onSnapshot(snap => {
+        const display = document.getElementById('content-display');
+        if (!display) return;
+        if (snap.empty) {
+            display.innerHTML = "മറ്റ് ക്ലാസുകൾ ലഭ്യമല്ല.";
+            return;
+        }
+        display.innerHTML = snap.docs.map(doc => {
+            const data = doc.data();
+            let icon = data.type === 'video' ? '📺' : (data.type === 'audio' ? '🎵' : '📄');
+            return `
+                <div class="card" style="margin-bottom:10px; border-left: 5px solid #00796b; padding: 15px;">
+                    <h4 style="margin:0 0 10px 0;">${icon} ${data.title}</h4>
+                    <a href="${data.url}" target="_blank" class="primary-btn" style="text-decoration:none; display:inline-block; width:auto; padding:8px 20px; font-size: 0.9rem;">Open Link</a>
+                </div>`;
+        }).join('');
+    });
+}
+
+// 6. STUDENT: എക്സാം ലോജിക്
 async function startExam() {
-    // പരീക്ഷാ മോഡ് ON ആകുമ്പോൾ മാത്രം ചോദ്യങ്ങൾ ഡൗൺലോഡ് ചെയ്യുന്നു
     const snap = await db.collection("questions").orderBy("timestamp").get();
     questions = snap.docs.map(d => d.data());
     if(questions.length > 0) {
         currentQIndex = 0;
         score = 0;
         showQuestion();
-    } else {
-        alert("ചോദ്യങ്ങൾ തയ്യാറായിട്ടില്ല!");
     }
 }
 
@@ -174,19 +223,22 @@ async function finishExam() {
         score: score,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-    alert("നിങ്ങളുടെ ഉത്തരങ്ങൾ സേവ് ചെയ്തു. പരീക്ഷ അവസാനിച്ചു.");
+    alert("പരീക്ഷ അവസാനിച്ചു. ഉത്തരങ്ങൾ സേവ് ചെയ്തു.");
     location.reload();
 }
 
 function checkResultPublished() {
     db.collection("settings").doc("resultSettings").onSnapshot(async doc => {
         const data = doc.data();
+        const resultCard = document.getElementById('student-result-card');
         if (data && data.published) {
             const res = await db.collection("results").doc(auth.currentUser.uid).get();
             if (res.exists) {
-                document.getElementById('student-result-card').style.display = 'block';
+                resultCard.style.display = 'block';
                 document.getElementById('user-score').innerText = `${res.data().score} / ${questions.length || 100}`;
             }
+        } else {
+            if (resultCard) resultCard.style.display = 'none';
         }
     });
 }
