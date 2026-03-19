@@ -10,11 +10,17 @@
 
     <div id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-        <div class="sidebar-header">AL RASHIDA</div>
-        <a href="#" onclick="showSection('home-screen'); closeNav();">🏠 Home</a>
-        <a href="#" onclick="showAdminLogin()">🔐 Admin Login</a>
-        <a href="#" onclick="alert('Important Messages functionality coming soon!');">📢 Important Messages</a>
-        <a href="#" onclick="alert('Al Rashida Online Dars - Version 2.0');">ℹ️ App Info</a>
+        
+        <div style="padding: 20px 10px; text-align: center; background: #00332c; color: #ffd700; margin-bottom: 15px; border-bottom: 2px solid #ffd700;">
+            <h3 style="font-size: 1rem; margin: 0; line-height: 1.4;">മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി</h3>
+            <p style="font-size: 0.8rem; margin: 5px 0 0; color: #fff; letter-spacing: 1px;">വനിതാ ഓൺലൈൻ ദർസ്</p>
+        </div>
+
+        <a href="#" onclick="showSection('home-screen'); closeNav();">🏠 ഹോം പേജ്</a>
+        <a href="#" onclick="showAdminLogin(); closeNav();">🔐 അഡ്മിൻ ലോഗിൻ</a>
+        <a href="#" onclick="showSection('important-msg'); closeNav();">📢 പ്രധാന അറിയിപ്പുകൾ</a>
+        <a href="#" onclick="showSection('app-info'); closeNav();">ℹ️ ആപ്പിനെക്കുറിച്ച്</a>
+        <a href="#" id="logout-btn-sidebar" onclick="logout()" style="display:none; color: #ff5252;">🚪 ലോഗൗട്ട്</a>
     </div>
 
     <div id="app">
@@ -30,22 +36,27 @@
             <h2 style="text-align:center; color:#004d40; margin-bottom:20px;">സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക</h2>
             <div class="semester-grid">
                 <div class="sem-card" onclick="selectSemester(1)">
+                    <img src="icons/sem1.png" alt="S1" class="sem-icon"> 
                     <div class="logo-icon" style="margin: 0 auto 10px auto;">S1</div>
                     <h3>Semester 1</h3>
                 </div>
                 <div class="sem-card" onclick="selectSemester(2)">
+                    <img src="icons/sem2.png" alt="S2" class="sem-icon">
                     <div class="logo-icon" style="margin: 0 auto 10px auto;">S2</div>
                     <h3>Semester 2</h3>
                 </div>
                 <div class="sem-card" onclick="selectSemester(3)">
+                    <img src="icons/sem3.png" alt="S3" class="sem-icon">
                     <div class="logo-icon" style="margin: 0 auto 10px auto;">S3</div>
                     <h3>Semester 3</h3>
                 </div>
                 <div class="sem-card" onclick="selectSemester(4)">
+                    <img src="icons/sem4.png" alt="S4" class="sem-icon">
                     <div class="logo-icon" style="margin: 0 auto 10px auto;">S4</div>
                     <h3>Semester 4</h3>
                 </div>
                 <div class="sem-card" onclick="selectSemester(5)">
+                    <img src="icons/sem5.png" alt="S5" class="sem-icon">
                     <div class="logo-icon" style="margin: 0 auto 10px auto;">S5</div>
                     <h3>Semester 5</h3>
                 </div>
@@ -55,10 +66,32 @@
         <div id="login-screen" class="container" style="display:none;">
             <div class="card">
                 <h2 id="login-title">Login</h2>
-                <input type="text" id="email" placeholder="Username">
-                <input type="password" id="password" placeholder="Password">
+                <input type="text" id="student-name" placeholder="നിങ്ങളുടെ പേര് (Full Name)">
+                <input type="text" id="student-place" placeholder="സ്ഥലം (Place)">
+                <hr style="margin: 15px 0; border: 0.5px solid #eee;">
+                <input type="text" id="email" placeholder="ഫോൺ നമ്പർ (ID)">
+                <input type="password" id="password" placeholder="പാസ്‌വേർഡ്">
                 <button onclick="login()" class="primary-btn">Login</button>
                 <button onclick="showSection('home-screen')" class="btn-off" style="width:100%; margin-top:10px; background:#666;">Back to Home</button>
+            </div>
+        </div>
+
+        <div id="important-msg" class="container" style="display:none;">
+            <div class="card" style="border-left: 5px solid #ff5252;">
+                <h2 style="color: #d32f2f;">പ്രധാന ശ്രദ്ധയ്ക്ക്!</h2>
+                <p>നിങ്ങളുടെ യൂസർനെയിമും പാസ്‌വേർഡും ഒരിക്കലും കൈമാറാൻ പാടില്ല.</p>
+                <p>ഓരോരുത്തരും അവരുടെ പേര്, ഫോൺ നമ്പർ, സ്ഥലം എന്നിവ വാട്‌സാപ്പിൽ അയച്ചു തരുക.</p>
+                <p>ലോഗിൻ ചെയ്യുമ്പോൾ പേരും സ്ഥലവും കൃത്യമായി നൽകുക. എക്സാം സമയത്ത് ഇത് അത്യാവശ്യമാണ്.</p>
+                <button onclick="showSection('home-screen')" class="primary-btn">ശരി</button>
+            </div>
+        </div>
+
+        <div id="app-info" class="container" style="display:none;">
+            <div class="card">
+                <h2 style="color: #004d40;">ആപ്പിനെക്കുറിച്ച്</h2>
+                <p>ഉസ്താദ് മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി വനിതകൾക്കായി നടത്തുന്ന ഓൺലൈൻ ദർസ് ആപ്പ്.</p>
+                <p>ക്ലാസുകൾ കേൾക്കാനും, പഠിക്കാനും, സംശയങ്ങൾ ചോദിക്കാനും ഈ ആപ്പ് നിങ്ങളെ സഹായിക്കുന്നു. വർഷത്തിൽ ഒരിക്കൽ ഈ ആപ്പിലൂടെ എക്സാം ഉണ്ടായിരിക്കും.</p>
+                <button onclick="showSection('home-screen')" class="primary-btn">തിരികെ</button>
             </div>
         </div>
 
@@ -71,95 +104,45 @@
                 </div>
                 
                 <hr>
-                <h4>1. ചോദ്യങ്ങൾ ചേർക്കുക & നിയന്ത്രിക്കുക</h4>
+                <h4>1. ചോദ്യങ്ങൾ നിയന്ത്രിക്കുക</h4>
                 <div class="admin-form">
                     <textarea id="q-text-input" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
                     <input type="text" id="opt0" placeholder="Option 1">
                     <input type="text" id="opt1" placeholder="Option 2">
                     <input type="text" id="opt2" placeholder="Option 3">
                     <input type="text" id="opt3" placeholder="Option 4">
-                    <p>ശരിയായ ഉത്തരം ഏതാണ്?</p>
-                    <select id="correct-idx-input">
-                        <option value="0">Option 1</option>
-                        <option value="1">Option 2</option>
-                        <option value="2">Option 3</option>
-                        <option value="3">Option 4</option>
-                    </select>
                     <button onclick="addQuestionToDB()" class="primary-btn">Save Question</button>
                 </div>
-                <button onclick="loadAdminQuestions()" class="primary-btn" style="margin-top:10px; background:#607d8b;">ചോദ്യങ്ങൾ കാണുക / Edit</button>
                 <button onclick="deleteAllQuestions()" class="btn-off" style="width:100%; margin-top:5px;">എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യുക</button>
-                <div id="admin-questions-list" style="margin-top:10px;"></div>
 
                 <hr>
                 <h4>2. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
                 <div class="admin-form">
                     <input type="text" id="content-subject" placeholder="വിഷയം (eg: ഫിഖ്ഹ്)">
-                    <input type="date" id="content-date">
-                    <input type="time" id="content-time">
-                    <textarea id="content-instructions" placeholder="നിർദ്ദേശങ്ങൾ (eg: വീഡിയോ കണ്ട് നോട്ട് എഴുതുക...)" rows="2"></textarea>
-                    <div style="background:#f9f9f9; padding:10px; border-radius:8px; border:1px dashed #ccc;">
-                        <input type="text" id="link-video" placeholder="YouTube Link">
-                        <input type="text" id="link-audio" placeholder="Audio Drive Link">
-                        <input type="text" id="link-pdf" placeholder="PDF Drive Link">
-                    </div>
-                    <button onclick="uploadDetailedContent()" class="primary-btn" style="margin-top:10px;">Upload Class</button>
+                    <input type="text" id="link-video" placeholder="YouTube Link">
+                    <input type="text" id="link-audio" placeholder="Audio Drive Link">
+                    <input type="text" id="link-pdf" placeholder="PDF Drive Link">
+                    <button onclick="uploadDetailedContent()" class="primary-btn">Upload Class</button>
                 </div>
 
                 <hr>
-                <h4>3. കുട്ടികളുടെ സംശയങ്ങൾ (Queries)</h4>
-                <div id="admin-queries-list"></div>
-
-                <hr>
-                <h4>4. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
                 <div class="status-controls">
-                    <button onclick="publishResult(true)" class="btn-on">Publish Results</button>
-                    <button onclick="publishResult(false)" class="btn-off">Hide Results</button>
+                    <button onclick="publishResult(true)" class="btn-on">റിസൾട്ട് പ്രസിദ്ധീകരിക്കുക</button>
+                    <button onclick="publishResult(false)" class="btn-off">റിസൾട്ട് മറച്ചുവെക്കുക</button>
                 </div>
-                <button onclick="fetchResults()" class="primary-btn" style="margin-top: 10px;">Refresh Mark List</button>
-                <button onclick="clearAllResults()" class="btn-off" style="width:100%; margin-top:5px;">Clear All Results</button>
-                <div class="table-container" style="margin-top:15px;">
-                    <table>
-                        <thead>
-                            <tr style="background:#004d40; color:white;">
-                                <th>വിദ്യാർത്ഥി</th>
-                                <th>മാർക്ക്</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-body"></tbody>
-                    </table>
-                </div>
+                <button onclick="clearAllResults()" class="btn-off" style="width:100%; margin-top:10px;">എല്ലാ റിസൾട്ടുകളും നീക്കം ചെയ്യുക</button>
+                <div id="results-body" style="margin-top:10px;"></div>
             </div>
         </div>
 
         <div id="student-screen" class="container" style="display:none;">
-            <div id="student-result-card" class="card result-card" style="display:none;">
-                <h3>നിങ്ങളുടെ പരീക്ഷാ ഫലം</h3>
-                <h1 id="user-score">0 / 0</h1>
-            </div>
-
             <div id="class-list">
                 <h3>നിങ്ങളുടെ ക്ലാസുകൾ</h3>
-                <div class="card" style="padding: 0; overflow: hidden; border: 2px solid #004d40; margin-bottom:20px;">
-                    <iframe 
-                        src="https://drive.google.com/embeddedfolderview?id=10HHMFs4MJiSVQbrxRzzcpOGkjAVeE6cPlRqIDlp5xCuh75YRJSZ3-WGGFcraVDqw7BTbXaaC#list" 
-                        width="100%" height="400" frameborder="0">
-                    </iframe>
-                </div>
                 <div id="content-display"></div>
             </div>
-
             <div id="exam-box" style="display:none;">
-                <div class="exam-header">
-                    <span id="timer">00:30</span>
-                    <span id="q-progress">ചോദ്യം ലോഡ് ചെയ്യുന്നു...</span>
                 </div>
-                <div id="question-card" class="card">
-                    <p id="question-text" style="font-weight:bold;"></p>
-                    <div id="options-list"></div>
-                </div>
-            </div>
         </div>
     </div>
 
