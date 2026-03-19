@@ -8,24 +8,18 @@
 </head>
 <body>
 
- 
-<div id="mySidebar" class="sidebar">
-    
-    <div style="padding: 15px; text-align: center; color: #ffd700; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid rgba(255,215,0,0.2); letter-spacing: 1px;">
-        മെനു
-    </div>
-    
-    <div style="padding: 20px 10px; text-align: center; background: #00332c; color: #ffd700; margin-bottom: 15px; border-bottom: 2px solid #ffd700;">
-        <h3 style="font-size: 1rem; margin: 0; line-height: 1.4;">മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി</h3>
-        <p style="font-size: 0.8rem; margin: 5px 0 0; color: #fff; letter-spacing: 1px;">വനിതാ ഓൺലൈൻ ദർസ്</p>
-    </div>
+    <div id="mySidebar" class="sidebar">
+        <div style="padding: 30px 10px; text-align: center; background: #00332c; color: #ffd700; margin-bottom: 15px; border-bottom: 2px solid #ffd700;">
+            <h3 style="font-size: 1rem; margin: 0; line-height: 1.4;">മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി</h3>
+            <p style="font-size: 0.8rem; margin: 5px 0 0; color: #fff; letter-spacing: 1px;">വനിതാ ഓൺലൈൻ ദർസ്</p>
+        </div>
 
-    <a href="#" onclick="showSection('home-screen'); closeNav();">🏠 ഹോം പേജ്</a>
-    <a href="#" onclick="showAdminLogin(); closeNav();">🔐 അഡ്മിൻ ലോഗിൻ</a>
-    <a href="#" onclick="showSection('important-msg'); closeNav();">📢 പ്രധാന അറിയിപ്പുകൾ</a>
-    <a href="#" onclick="showSection('app-info'); closeNav();">ℹ️ ആപ്പിനെക്കുറിച്ച്</a>
-    <a href="#" id="logout-btn-sidebar" onclick="logout()" style="display:none; color: #ff5252;">🚪 ലോഗൗട്ട്</a>
-</div>
+        <a href="#" onclick="showSection('home-screen'); closeNav();">🏠 ഹോം പേജ്</a>
+        <a href="#" onclick="showAdminLogin(); closeNav();">🔐 അഡ്മിൻ ലോഗിൻ</a>
+        <a href="#" onclick="showSection('important-msg'); closeNav();">📢 പ്രധാന അറിയിപ്പുകൾ</a>
+        <a href="#" onclick="showSection('app-info'); closeNav();">ℹ️ ആപ്പിനെക്കുറിച്ച്</a>
+        <a href="#" id="logout-btn-sidebar" onclick="logout()" style="display:none; color: #ff5252;">🚪 ലോഗൗട്ട്</a>
+    </div>
 
     <div id="app">
         <header>
@@ -92,19 +86,41 @@
             </div>
         </div>
 
-        <div id="app-info" class="container" style="display:none;">
-            <div class="card">
-                <h2 style="color: #004d40;">ആപ്പിനെക്കുറിച്ച്</h2>
-                <p>ഉസ്താദ് മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി വനിതകൾക്കായി നടത്തുന്ന ഓൺലൈൻ ദർസ് ആപ്പ്.</p>
-                <p>ക്ലാസുകൾ കേൾക്കാനും, പഠിക്കാനും, സംശയങ്ങൾ ചോദിക്കാനും ഈ ആപ്പ് നിങ്ങളെ സഹായിക്കുന്നു. വർഷത്തിൽ ഒരിക്കൽ ഈ ആപ്പിലൂടെ എക്സാം ഉണ്ടായിരിക്കും.</p>
-                <button onclick="showSection('home-screen')" class="primary-btn">തിരികെ</button>
-            </div>
-        </div>
-
         <div id="admin-screen" class="container" style="display:none;">
             <div class="card">
                 <h3>Admin Control Panel</h3>
+                
+                <div class="status-controls" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button onclick="toggleExam(true)" style="background: #2e7d32; color:white; flex:1; padding: 12px; border:none; border-radius: 10px; cursor:pointer; font-weight:bold;">Start Exam</button>
+                    <button onclick="toggleExam(false)" style="background: #c62828; color:white; flex:1; padding: 12px; border:none; border-radius: 10px; cursor:pointer; font-weight:bold;">End Exam</button>
                 </div>
+                
+                <hr>
+                <h4>1. ചോദ്യങ്ങൾ നിയന്ത്രിക്കുക</h4>
+                <div class="admin-form">
+                    <textarea id="q-text-input" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
+                    <input type="text" id="opt0" placeholder="Option 1">
+                    <input type="text" id="opt1" placeholder="Option 2">
+                    <input type="text" id="opt2" placeholder="Option 3">
+                    <input type="text" id="opt3" placeholder="Option 4">
+                    <button onclick="addQuestionToDB()" class="primary-btn">Save Question</button>
+                </div>
+                <button onclick="deleteAllQuestions()" style="width:100%; margin-top:5px; background: #666; color:white; padding:10px; border:none; border-radius:10px;">എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യുക</button>
+
+                <hr style="margin:20px 0;">
+                <h4>2. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
+                <div class="admin-form">
+                    <input type="text" id="content-subject" placeholder="വിഷയം (eg: ഫിഖ്ഹ്)">
+                    <input type="text" id="link-video" placeholder="YouTube Link">
+                    <input type="text" id="link-audio" placeholder="Audio Drive Link">
+                    <input type="text" id="link-pdf" placeholder="PDF Drive Link">
+                    <button onclick="uploadDetailedContent()" class="primary-btn">Upload Class</button>
+                </div>
+
+                <hr style="margin:20px 0;">
+                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <div id="results-body"></div>
+            </div>
         </div>
 
         <div id="student-screen" class="container" style="display:none;">
