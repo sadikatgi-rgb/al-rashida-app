@@ -19,8 +19,13 @@ let score = 0;
 let selectedSem = null;
 
 // --- 2. SIDEBAR & NAVIGATION ---
-function openNav() { document.getElementById("mySidebar").style.width = "250px"; }
-function closeNav() { document.getElementById("mySidebar").style.width = "0"; }
+function openNav() { 
+    document.getElementById("mySidebar").style.width = "280px"; 
+}
+
+function closeNav() { 
+    document.getElementById("mySidebar").style.width = "0"; 
+}
 
 function showSection(id) {
     const sections = ['home-screen', 'login-screen', 'admin-screen', 'student-screen', 'important-msg', 'app-info'];
@@ -48,15 +53,18 @@ function showAdminLogin() {
     const studentInputs = document.getElementById('student-inputs');
     if (studentInputs) studentInputs.style.display = 'none'; 
     showSection('login-screen');
-    closeNav();
+    closeNav(); // മെനു ഐറ്റം ക്ലിക്ക് ചെയ്യുമ്പോൾ സൈഡ്ബാർ അടയുന്നു
 }
 
 // --- 3. LOGIN FUNCTION ---
 async function login() {
-    const name = document.getElementById('student-name').value;
-    const place = document.getElementById('student-place').value;
+    const nameInput = document.getElementById('student-name');
+    const placeInput = document.getElementById('student-place');
     const phone = document.getElementById('email').value; 
     const pass = document.getElementById('password').value;
+
+    const name = nameInput ? nameInput.value : "";
+    const place = placeInput ? placeInput.value : "";
 
     // കുട്ടികൾക്ക് പേരും സ്ഥലവും നിർബന്ധമാണ്
     if (selectedSem !== 'admin' && (!name || !place || !phone || !pass)) {
@@ -122,9 +130,9 @@ function loadContents() {
             <div class="card" style="border-top: 5px solid #004d40; margin-bottom: 20px;">
                 <h3 style="margin-bottom:10px; color:#004d40;">${data.subject}</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top:10px;">
-                    ${l.video ? `<a href="${l.video}" target="_blank" class="part-btn" style="background:#d32f2f;">Video</a>` : ''}
-                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="part-btn" style="background:#0288d1;">Audio</a>` : ''}
-                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="part-btn" style="background:#e64a19;">PDF</a>` : ''}
+                    ${l.video ? `<a href="${l.video}" target="_blank" class="part-btn" style="background:#d32f2f; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Video</a>` : ''}
+                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="part-btn" style="background:#0288d1; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Audio</a>` : ''}
+                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="part-btn" style="background:#e64a19; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">PDF</a>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -164,13 +172,18 @@ async function addQuestionToDB() {
         document.getElementById('opt0').value, document.getElementById('opt1').value,
         document.getElementById('opt2').value, document.getElementById('opt3').value
     ];
-    const correctIdx = 0; // Default
+    if(!text || options.some(opt => !opt)) { alert("ചോദ്യവും ഓപ്ഷനുകളും പൂർണ്ണമായി നൽകുക!"); return; }
 
     await db.collection("questions").add({
         semester: parseInt(sem),
-        text, options, correctIndex: correctIdx, timestamp: Date.now()
+        text, options, correctIndex: 0, timestamp: Date.now()
     });
     alert("ചോദ്യം സേവ് ചെയ്തു!");
+    document.getElementById('q-text-input').value = "";
+    document.getElementById('opt0').value = "";
+    document.getElementById('opt1').value = "";
+    document.getElementById('opt2').value = "";
+    document.getElementById('opt3').value = "";
 }
 
 function toggleExam(status) {
@@ -178,6 +191,18 @@ function toggleExam(status) {
     if(!sem) return;
     db.collection("settings").doc(`examMode_${sem}`).set({ active: status })
     .then(() => alert(`Semester ${sem} പരീക്ഷാ മോഡ് മാറ്റി.`));
+}
+
+async function deleteAllQuestions() {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ ചോദ്യങ്ങളാണ് ഡിലീറ്റ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
+    if(!sem) return;
+    if(confirm(`Semester ${sem}-ലെ എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യട്ടെ?`)) {
+        const snap = await db.collection("questions").where("semester", "==", parseInt(sem)).get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("ചോദ്യങ്ങൾ ഡിലീറ്റ് ചെയ്തു.");
+    }
 }
 
 // --- 6. EXAM & RESULTS ---
@@ -190,7 +215,9 @@ async function startExam() {
     if(questions.length > 0) { 
         currentQIndex = 0; score = 0; 
         alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
-        // showQuestion(); -> ഈ ഫങ്ക്ഷൻ നിങ്ങളുടെ കോഡിൽ ഉണ്ടെന്ന് ഉറപ്പാക്കുക
+        // showQuestion(); -> ഈ ഫങ്ക്ഷൻ ആവശ്യമുണ്ടെങ്കിൽ ഇവിടെ ചേർക്കാം
+    } else {
+        alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
     }
 }
 
@@ -211,6 +238,6 @@ async function finishExam() {
     location.reload();
 }
 
-function logout() { auth.signOut(); location.reload(); }
+function logout() { auth.signOut().then(() => location.reload()); }
 
 window.onload = () => { showSection('home-screen'); };
