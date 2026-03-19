@@ -33,15 +33,6 @@ body {
     box-shadow: 2px 0 15px rgba(0,0,0,0.3);
 }
 
-/* സൈഡ് മെനുവിലെ ഹെഡർ സ്റ്റൈൽ */
-.sidebar-header {
-    padding: 25px 15px;
-    background: #00332c;
-    border-bottom: 2px solid var(--gold);
-    margin-bottom: 10px;
-    text-align: center;
-}
-
 .sidebar a {
     padding: 15px 25px;
     text-decoration: none;
@@ -90,7 +81,7 @@ header {
 }
 
 .logo-area h1 { 
-    font-size: 1.1rem; 
+    font-size: 1rem; 
     margin: 0; 
     font-weight: bold;
     letter-spacing: 0.5px;
@@ -99,7 +90,7 @@ header {
 /* 4. ഹോം സ്ക്രീൻ - സെമസ്റ്റർ കാർഡുകൾ */
 .semester-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 20px;
     padding: 20px;
     max-width: 1000px;
@@ -113,7 +104,7 @@ header {
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    border-bottom: 6px solid var(--gold);
+    border-bottom: 6px solid var(--gold); /* സ്ക്രീൻഷോട്ടിലെ മഞ്ഞ ബോർഡർ */
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
@@ -123,38 +114,56 @@ header {
 .sem-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-    background: #fffef5;
 }
 
-/* ഐക്കണുകൾക്കുള്ള പ്രത്യേക സ്റ്റൈൽ */
+/* നിങ്ങൾ നൽകിയ PNG ഐക്കണുകൾക്കുള്ള സ്റ്റൈൽ */
 .sem-icon {
-    width: 65px;
-    height: 65px;
-    margin-bottom: 12px;
+    width: 60px; /* ഐക്കണുകൾ വ്യക്തമായി കാണാൻ ഈ സൈസ് അനുയോജ്യമാണ് */
+    height: 60px;
+    margin-bottom: 15px;
     object-fit: contain;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
 }
 
+/* S1, S2 ലേബലുകൾ (പച്ച വട്ടം) */
 .logo-icon {
     background: var(--main);
     color: var(--gold);
-    width: 35px;
-    height: 35px;
-    line-height: 35px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
     border-radius: 50%;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     font-weight: bold;
     margin-bottom: 8px;
 }
 
 .sem-card h3 {
-    margin: 5px 0 0;
+    margin: 0;
     font-size: 1rem;
     color: var(--main);
-    font-weight: 700;
+    font-weight: bold;
 }
 
-/* 5. കണ്ടെയ്നറുകളും കാർഡുകളും */
+/* 5. ലോഗിൻ സ്ക്രീനിലെ ബാക്ക് ബട്ടൺ */
+.back-home-btn {
+    width: 100%;
+    margin-top: 15px;
+    background: #616161; /* ഗ്രേ നിറം */
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.back-home-btn:hover {
+    background: #424242;
+}
+
+/* 6. കണ്ടെയ്നറുകളും കാർഡുകളും */
 .container { padding: 20px; padding-bottom: 80px; max-width: 800px; margin: 0 auto; }
 
 .card { 
@@ -167,20 +176,16 @@ header {
     border: 1px solid #f0f0f0;
 }
 
-/* 6. ഫോം എലമെന്റുകൾ */
-input, select, textarea { 
+/* 7. ഫോം എലമെന്റുകൾ */
+input { 
     width: 100%; 
     padding: 15px; 
-    margin: 12px 0; 
+    margin: 10px 0; 
     border: 1.5px solid #e0e0e0; 
     border-radius: 12px; 
     font-size: 1rem;
     box-sizing: border-box;
-    outline: none;
-    transition: border-color 0.3s;
 }
-
-input:focus { border-color: var(--sec); }
 
 .primary-btn { 
     background: var(--sec); 
@@ -193,28 +198,15 @@ input:focus { border-color: var(--sec); }
     font-size: 1.1rem; 
     font-weight: bold;
     margin-top: 10px;
-    transition: 0.3s;
 }
 
-.primary-btn:hover { background: var(--main); box-shadow: 0 5px 15px rgba(0,121,107,0.3); }
-
-/* 7. സ്റ്റുഡന്റ് ക്ലാസ് ഡിസ്‌പ്ലേ */
-.part-btn {
-    padding: 12px 20px;
-    color: white;
-    text-decoration: none;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-align: center;
-    transition: 0.3s;
-}
-
-/* 8. റെസ്പോൺസീവ് സെറ്റിംഗ്സ് */
+/* 8. റെസ്പോൺസീവ് (മൊബൈൽ ഫോണുകൾക്കായി) */
 @media (max-width: 480px) {
-    .semester-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
-    .sem-card { padding: 20px 10px; }
-    .sem-icon { width: 55px; height: 55px; }
-    .logo-area h1 { font-size: 0.9rem; }
-    .card { padding: 20px; }
+    .semester-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px; 
+        padding: 10px; 
+    }
+    .sem-card { padding: 15px 10px; }
+    .sem-icon { width: 50px; height: 50px; }
 }
