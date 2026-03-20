@@ -21,10 +21,14 @@ let selectedSem = null;
 // --- 2. SIDEBAR & NAVIGATION ---
 function openNav() { 
     document.getElementById("mySidebar").style.width = "280px"; 
+    if (window.innerWidth > 480) {
+        document.body.style.marginLeft = "280px";
+    }
 }
 
 function closeNav() { 
     document.getElementById("mySidebar").style.width = "0"; 
+    document.body.style.marginLeft = "0"; 
 }
 
 function showSection(id) {
@@ -37,7 +41,6 @@ function showSection(id) {
     if (target) target.style.display = 'block';
 }
 
-// സെമസ്റ്റർ ലോഗിൻ - പേരും സ്ഥലവും കാണിക്കണം
 function selectSemester(sem) {
     selectedSem = sem;
     document.getElementById('login-title').innerText = `Semester ${sem} Login`;
@@ -46,14 +49,13 @@ function selectSemester(sem) {
     showSection('login-screen');
 }
 
-// അഡ്മിൻ ലോഗിൻ - പേരും സ്ഥലവും വേണ്ട
 function showAdminLogin() {
     selectedSem = 'admin';
     document.getElementById('login-title').innerText = `Admin Login`;
     const studentInputs = document.getElementById('student-inputs');
     if (studentInputs) studentInputs.style.display = 'none'; 
     showSection('login-screen');
-    closeNav(); // മെനു ഐറ്റം ക്ലിക്ക് ചെയ്യുമ്പോൾ സൈഡ്ബാർ അടയുന്നു
+    closeNav();
 }
 
 // --- 3. LOGIN FUNCTION ---
@@ -66,7 +68,6 @@ async function login() {
     const name = nameInput ? nameInput.value : "";
     const place = placeInput ? placeInput.value : "";
 
-    // കുട്ടികൾക്ക് പേരും സ്ഥലവും നിർബന്ധമാണ്
     if (selectedSem !== 'admin' && (!name || !place || !phone || !pass)) {
         alert("പേര്, സ്ഥലം, ഫോൺ നമ്പർ, പാസ്‌വേർഡ് എന്നിവ നിർബന്ധമാണ്");
         return;
@@ -90,13 +91,14 @@ async function login() {
         document.getElementById('logout-btn').style.display = 'block';
         document.getElementById('logout-btn-sidebar').style.display = 'block';
     } catch (e) { 
-        alert("ലോഗിൻ പരാജയപ്പെട്ടു: വിവരങ്ങൾ അല്ലെങ്കിൽ സെമസ്റ്റർ പരിശോധിക്കുക!"); 
+        alert("ലോഗിൻ പരാജയപ്പെട്ടു: വിവരങ്ങൾ പരിശോധിക്കുക!"); 
     }
 }
 
 // --- 4. STUDENT & CONTENT LOGIC ---
 function initStudentApp() {
     loadContents();
+    // എക്സാം മോഡ് ചെക്ക് ചെയ്യുക
     db.collection("settings").doc(`examMode_${selectedSem}`).onSnapshot(doc => {
         const data = doc.data();
         if (data && data.active === true) {
@@ -118,51 +120,23 @@ function loadContents() {
         const display = document.getElementById('content-display');
         if (!display) return;
         
-        if (snap.empty) {
-            display.innerHTML = "<p style='text-align:center; padding:20px;'>ഈ സെമസ്റ്ററിൽ ക്ലാസുകൾ ലഭ്യമല്ല.</p>";
-            return;
-        }
-        
         display.innerHTML = snap.docs.map(doc => {
             const data = doc.data();
             const l = data.links || {};
             return `
-            <div class="card" style="border-top: 5px solid #004d40; margin-bottom: 20px;">
-                <h3 style="margin-bottom:10px; color:#004d40;">${data.subject}</h3>
+            <div class="card" style="border-top: 5px solid var(--main);">
+                <h3 style="color: var(--main);">${data.subject}</h3>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top:10px;">
-                    ${l.video ? `<a href="${l.video}" target="_blank" class="part-btn" style="background:#d32f2f; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Video</a>` : ''}
-                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="part-btn" style="background:#0288d1; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">Audio</a>` : ''}
-                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="part-btn" style="background:#e64a19; color:white; padding:8px 15px; border-radius:5px; text-decoration:none;">PDF</a>` : ''}
+                    ${l.video ? `<a href="${l.video}" target="_blank" class="primary-btn" style="background:var(--danger); text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">Video</a>` : ''}
+                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="primary-btn" style="background:#0288d1; text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">Audio</a>` : ''}
+                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="primary-btn" style="background:#e64a19; text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">PDF</a>` : ''}
                 </div>
             </div>`;
         }).join('');
     });
 }
 
-// --- 5. ADMIN FUNCTIONS ---
-async function uploadDetailedContent() {
-    const subject = document.getElementById('content-subject').value;
-    const video = document.getElementById('link-video').value;
-    const audio = document.getElementById('link-audio').value;
-    const pdf = document.getElementById('link-pdf').value;
-
-    const sem = prompt("ഏത് സെമസ്റ്ററിലേക്കാണ് ഈ ക്ലാസ്? (1,2,3,4,5)", "1");
-    if(!sem || !subject) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
-
-    try {
-        await db.collection("contents").add({
-            semester: parseInt(sem),
-            subject,
-            links: { video, audio, pdf },
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!`);
-        document.getElementById('content-subject').value = "";
-        document.getElementById('link-video').value = "";
-        document.getElementById('link-audio').value = "";
-        document.getElementById('link-pdf').value = "";
-    } catch (e) { alert("Error: " + e.message); }
-}
+// --- 5. ADMIN FUNCTIONS (നിങ്ങൾ ആവശ്യപ്പെട്ട മാറ്റങ്ങളോടെ) ---
 
 async function addQuestionToDB() {
     const sem = prompt("ഈ ചോദ്യം ഏത് സെമസ്റ്ററിലേക്കാണ്? (1,2,3,4,5)", "1");
@@ -172,25 +146,41 @@ async function addQuestionToDB() {
         document.getElementById('opt0').value, document.getElementById('opt1').value,
         document.getElementById('opt2').value, document.getElementById('opt3').value
     ];
-    if(!text || options.some(opt => !opt)) { alert("ചോദ്യവും ഓപ്ഷനുകളും പൂർണ്ണമായി നൽകുക!"); return; }
+    const correctIdx = parseInt(document.getElementById('correct-idx-input').value);
+
+    if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
 
     await db.collection("questions").add({
         semester: parseInt(sem),
-        text, options, correctIndex: 0, timestamp: Date.now()
+        text, options, correctIndex: correctIdx, timestamp: Date.now()
     });
     alert("ചോദ്യം സേവ് ചെയ്തു!");
+    // ഫോം ക്ലിയർ ചെയ്യുന്നു
     document.getElementById('q-text-input').value = "";
-    document.getElementById('opt0').value = "";
-    document.getElementById('opt1').value = "";
-    document.getElementById('opt2').value = "";
-    document.getElementById('opt3').value = "";
+    document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
+    document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
 }
 
-function toggleExam(status) {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ എക്സാം ആണ് തുടങ്ങേണ്ടത്/നിർത്തേണ്ടത്? (1,2,3,4,5)");
-    if(!sem) return;
-    db.collection("settings").doc(`examMode_${sem}`).set({ active: status })
-    .then(() => alert(`Semester ${sem} പരീക്ഷാ മോഡ് മാറ്റി.`));
+async function uploadDetailedContent() {
+    const subject = document.getElementById('content-subject').value;
+    const video = document.getElementById('link-video').value;
+    const audio = document.getElementById('link-audio').value;
+    const pdf = document.getElementById('link-pdf').value;
+
+    const sem = prompt("ഏത് സെമസ്റ്ററിലേക്കാണ് ഈ ക്ലാസ്? (1,2,3,4,5)", "1");
+    if(!sem || !subject) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
+
+    await db.collection("contents").add({
+        semester: parseInt(sem),
+        subject,
+        links: { video, audio, pdf },
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!");
+    document.getElementById('content-subject').value = "";
+    document.getElementById('link-video').value = "";
+    document.getElementById('link-audio').value = "";
+    document.getElementById('link-pdf').value = "";
 }
 
 async function deleteAllQuestions() {
@@ -205,7 +195,50 @@ async function deleteAllQuestions() {
     }
 }
 
-// --- 6. EXAM & RESULTS ---
+async function clearAllResults() {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ടുകളാണ് നീക്കം ചെയ്യേണ്ടത്? (1,2,3,4,5)");
+    if(!sem) return;
+    if(confirm(`Semester ${sem}-ലെ എല്ലാ റിസൾട്ടുകളും നീക്കം ചെയ്യട്ടെ?`)) {
+        const snap = await db.collection("results").where("semester", "==", sem).get();
+        const batch = db.batch();
+        snap.forEach(doc => batch.delete(doc.ref));
+        await batch.commit();
+        alert("റിസൾട്ടുകൾ നീക്കം ചെയ്തു.");
+        if(document.getElementById('admin-screen').style.display === 'block') fetchResults();
+    }
+}
+
+async function fetchResults() {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് കാണേണ്ടത്?", "1");
+    if(!sem) return;
+    const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
+    const body = document.getElementById('results-body');
+    body.innerHTML = snap.docs.map(doc => {
+        const d = doc.data();
+        return `<tr>
+            <td style="padding:10px; border-bottom:1px solid #eee;">${d.studentName}<br><small>${d.studentPlace}</small></td>
+            <td style="padding:10px; border-bottom:1px solid #eee;"><b>${d.score}</b></td>
+            <td style="padding:10px; border-bottom:1px solid #eee;"><button onclick="deleteSingleResult('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:4px;">Del</button></td>
+        </tr>`;
+    }).join('');
+}
+
+async function deleteSingleResult(id) {
+    if(confirm("ഈ റിസൾട്ട് ഒഴിവാക്കട്ടെ?")) {
+        await db.collection("results").doc(id).delete();
+        alert("നീക്കം ചെയ്തു.");
+        fetchResults();
+    }
+}
+
+function toggleExam(status) {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ എക്സാം ആണ് തുടങ്ങേണ്ടത്/നിർത്തേണ്ടത്? (1,2,3,4,5)");
+    if(!sem) return;
+    db.collection("settings").doc(`examMode_${sem}`).set({ active: status })
+    .then(() => alert(`Semester ${sem} പരീക്ഷാ മോഡ് മാറ്റി.`));
+}
+
+// --- 6. EXAM LOGIC ---
 async function startExam() {
     const snap = await db.collection("questions")
     .where("semester", "==", parseInt(selectedSem))
@@ -215,29 +248,10 @@ async function startExam() {
     if(questions.length > 0) { 
         currentQIndex = 0; score = 0; 
         alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
-        // showQuestion(); -> ഈ ഫങ്ക്ഷൻ ആവശ്യമുണ്ടെങ്കിൽ ഇവിടെ ചേർക്കാം
+        // showQuestion(); -> പരീക്ഷാ ഹാൾ ഡിസൈൻ അനുസരിച്ച് ഇവിടെ ഫങ്ക്ഷൻ വിളിക്കാം
     } else {
         alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
     }
 }
 
-async function finishExam() {
-    const user = auth.currentUser;
-    const name = document.getElementById('student-name').value;
-    const place = document.getElementById('student-place').value;
-
-    await db.collection("results").add({
-        studentName: name,
-        studentPlace: place,
-        email: user.email,
-        score: score,
-        semester: selectedSem,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    alert("പരീക്ഷ അവസാനിച്ചു. റിസൾട്ട് പിന്നീട് പ്രസിദ്ധീകരിക്കുന്നതാണ്.");
-    location.reload();
-}
-
 function logout() { auth.signOut().then(() => location.reload()); }
-
-window.onload = () => { showSection('home-screen'); };
