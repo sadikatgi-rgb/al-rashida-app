@@ -38,22 +38,33 @@ function showSection(id) {
         if (el) el.style.display = 'none';
     });
     const target = document.getElementById(id);
-    if (target) target.style.display = 'block';
+    if (target) {
+        target.style.display = 'block';
+        window.scrollTo(0, 0); // പേജിന്റെ മുകളിലേക്ക് എത്തിക്കുന്നു
+    }
 }
 
+// സെമസ്റ്റർ കാർഡ് ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function selectSemester(sem) {
     selectedSem = sem;
-    document.getElementById('login-title').innerText = `Semester ${sem} Login`;
+    const loginTitle = document.getElementById('login-title');
+    if (loginTitle) loginTitle.innerText = `Semester ${sem} Login`;
+    
     const studentInputs = document.getElementById('student-inputs');
-    if (studentInputs) studentInputs.style.display = 'block'; 
+    if (studentInputs) studentInputs.style.display = 'block'; // പേരും സ്ഥലവും കാണിക്കുന്നു
+    
     showSection('login-screen');
 }
 
+// സൈഡ്ബാറിലെ അഡ്മിൻ ലോഗിൻ ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function showAdminLogin() {
     selectedSem = 'admin';
-    document.getElementById('login-title').innerText = `Admin Login`;
+    const loginTitle = document.getElementById('login-title');
+    if (loginTitle) loginTitle.innerText = `Admin Login`;
+    
     const studentInputs = document.getElementById('student-inputs');
-    if (studentInputs) studentInputs.style.display = 'none'; 
+    if (studentInputs) studentInputs.style.display = 'none'; // അഡ്മിന് പേരും സ്ഥലവും വേണ്ട
+    
     showSection('login-screen');
     closeNav();
 }
@@ -68,6 +79,7 @@ async function login() {
     const name = nameInput ? nameInput.value : "";
     const place = placeInput ? placeInput.value : "";
 
+    // അഡ്മിൻ അല്ലെങ്കിൽ മാത്രം പേരും സ്ഥലവും നിർബന്ധം
     if (selectedSem !== 'admin' && (!name || !place || !phone || !pass)) {
         alert("പേര്, സ്ഥലം, ഫോൺ നമ്പർ, പാസ്‌വേർഡ് എന്നിവ നിർബന്ധമാണ്");
         return;
@@ -89,7 +101,8 @@ async function login() {
             initStudentApp();
         }
         document.getElementById('logout-btn').style.display = 'block';
-        document.getElementById('logout-btn-sidebar').style.display = 'block';
+        const logoutSidebar = document.getElementById('logout-btn-sidebar');
+        if(logoutSidebar) logoutSidebar.style.display = 'block';
     } catch (e) { 
         alert("ലോഗിൻ പരാജയപ്പെട്ടു: വിവരങ്ങൾ പരിശോധിക്കുക!"); 
     }
@@ -136,7 +149,7 @@ function loadContents() {
     });
 }
 
-// --- 5. ADMIN FUNCTIONS (നിങ്ങൾ ആവശ്യപ്പെട്ട മാറ്റങ്ങളോടെ) ---
+// --- 5. ADMIN FUNCTIONS ---
 
 async function addQuestionToDB() {
     const sem = prompt("ഈ ചോദ്യം ഏത് സെമസ്റ്ററിലേക്കാണ്? (1,2,3,4,5)", "1");
@@ -155,32 +168,9 @@ async function addQuestionToDB() {
         text, options, correctIndex: correctIdx, timestamp: Date.now()
     });
     alert("ചോദ്യം സേവ് ചെയ്തു!");
-    // ഫോം ക്ലിയർ ചെയ്യുന്നു
     document.getElementById('q-text-input').value = "";
     document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
     document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
-}
-
-async function uploadDetailedContent() {
-    const subject = document.getElementById('content-subject').value;
-    const video = document.getElementById('link-video').value;
-    const audio = document.getElementById('link-audio').value;
-    const pdf = document.getElementById('link-pdf').value;
-
-    const sem = prompt("ഏത് സെമസ്റ്ററിലേക്കാണ് ഈ ക്ലാസ്? (1,2,3,4,5)", "1");
-    if(!sem || !subject) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
-
-    await db.collection("contents").add({
-        semester: parseInt(sem),
-        subject,
-        links: { video, audio, pdf },
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    alert("ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!");
-    document.getElementById('content-subject').value = "";
-    document.getElementById('link-video').value = "";
-    document.getElementById('link-audio').value = "";
-    document.getElementById('link-pdf').value = "";
 }
 
 async function deleteAllQuestions() {
@@ -204,7 +194,7 @@ async function clearAllResults() {
         snap.forEach(doc => batch.delete(doc.ref));
         await batch.commit();
         alert("റിസൾട്ടുകൾ നീക്കം ചെയ്തു.");
-        if(document.getElementById('admin-screen').style.display === 'block') fetchResults();
+        fetchResults(); 
     }
 }
 
@@ -213,6 +203,7 @@ async function fetchResults() {
     if(!sem) return;
     const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
     const body = document.getElementById('results-body');
+    if(!body) return;
     body.innerHTML = snap.docs.map(doc => {
         const d = doc.data();
         return `<tr>
@@ -231,11 +222,11 @@ async function deleteSingleResult(id) {
     }
 }
 
-function toggleExam(status) {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ എക്സാം ആണ് തുടങ്ങേണ്ടത്/നിർത്തേണ്ടത്? (1,2,3,4,5)");
+function toggleResultStatus(status) {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് പബ്ലിഷ്/ഹൈഡ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
     if(!sem) return;
-    db.collection("settings").doc(`examMode_${sem}`).set({ active: status })
-    .then(() => alert(`Semester ${sem} പരീക്ഷാ മോഡ് മാറ്റി.`));
+    db.collection("settings").doc(`resultMode_${sem}`).set({ active: status })
+    .then(() => alert(`Semester ${sem} റിസൾട്ട് മോഡ് മാറ്റി.`));
 }
 
 // --- 6. EXAM LOGIC ---
@@ -248,7 +239,7 @@ async function startExam() {
     if(questions.length > 0) { 
         currentQIndex = 0; score = 0; 
         alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
-        // showQuestion(); -> പരീക്ഷാ ഹാൾ ഡിസൈൻ അനുസരിച്ച് ഇവിടെ ഫങ്ക്ഷൻ വിളിക്കാം
+        // ഇവിടെ വേണമെങ്കിൽ പരീക്ഷാ ചോദ്യങ്ങൾ കാണിക്കുന്ന ഫങ്ക്ഷൻ ചേർക്കാം
     } else {
         alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
     }
