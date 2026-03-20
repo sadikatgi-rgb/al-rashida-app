@@ -11,6 +11,8 @@
     --text: #212529;
 }
 
+* { box-sizing: border-box; }
+
 body { 
     font-family: 'Segoe UI', Roboto, 'Noto Sans Malayalam', Helvetica, Arial, sans-serif; 
     background: var(--bg); 
@@ -19,7 +21,7 @@ body {
     transition: margin-left .5s;
 }
 
-/* 2. സൈഡ് മെനു (Sidebar) - മാറ്റങ്ങൾ വരുത്തിയത് */
+/* 2. സൈഡ് മെനു (Sidebar) */
 .sidebar {
     height: 100%;
     width: 0;
@@ -31,6 +33,15 @@ body {
     overflow-x: hidden;
     transition: 0.5s;
     box-shadow: 2px 0 15px rgba(0,0,0,0.3);
+}
+
+.sidebar-header {
+    padding: 30px 15px;
+    text-align: center;
+    background: #00332c;
+    color: var(--gold);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--gold);
 }
 
 .sidebar a {
@@ -49,22 +60,13 @@ body {
     color: white;
 }
 
-/* പഴയ .closebtn സ്റ്റൈൽ നീക്കം ചെയ്തു, പകരം സൈഡ്ബാറിന്റെ മുകൾ ഭാഗം ഭംഗിയാക്കി */
-.sidebar-header {
-    padding: 30px 10px;
-    text-align: center;
-    background: #00332c;
-    color: var(--gold);
-    margin-bottom: 15px;
-    border-bottom: 2px solid var(--gold);
-}
-
 /* 3. ഹെഡർ */
 header { 
     background: var(--main); 
     color: white; 
     padding: 12px 15px; 
     display: flex; 
+    justify-content: space-between;
     align-items: center; 
     border-bottom: 4px solid var(--gold); 
     position: sticky;
@@ -79,14 +81,14 @@ header {
     background-color: transparent;
     color: white;
     border: none;
-    margin-right: 15px;
 }
 
 .logo-area h1 { 
-    font-size: 1rem; 
+    font-size: 1.1rem; 
     margin: 0; 
     font-weight: bold;
     letter-spacing: 0.5px;
+    text-align: center;
 }
 
 /* 4. ഹോം സ്ക്രീൻ - സെമസ്റ്റർ കാർഡുകൾ */
@@ -108,9 +110,6 @@ header {
     transition: all 0.3s ease;
     border-bottom: 6px solid var(--gold);
     box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .sem-card:hover {
@@ -134,37 +133,16 @@ header {
     border-radius: 50%;
     font-size: 0.8rem;
     font-weight: bold;
-    margin-bottom: 8px;
+    margin: 0 auto 10px;
 }
 
-.sem-card h3 {
-    margin: 0;
-    font-size: 1rem;
-    color: var(--main);
-    font-weight: bold;
+/* 5. കണ്ടെയ്നറുകളും കാർഡുകളും */
+.container { 
+    padding: 20px; 
+    padding-bottom: 80px; 
+    max-width: 800px; 
+    margin: 0 auto; 
 }
-
-/* 5. ലോഗിൻ സ്ക്രീനിലെ ബാക്ക് ബട്ടൺ */
-.back-home-btn {
-    width: 100%;
-    margin-top: 15px;
-    background: #616161;
-    color: white;
-    padding: 14px;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.back-home-btn:hover {
-    background: #424242;
-}
-
-/* 6. കണ്ടെയ്നറുകളും കാർഡുകളും */
-.container { padding: 20px; padding-bottom: 80px; max-width: 800px; margin: 0 auto; }
 
 .card { 
     background: var(--white); 
@@ -172,20 +150,27 @@ header {
     padding: 25px; 
     border-radius: 20px; 
     box-shadow: 0 8px 25px rgba(0,0,0,0.05); 
-    box-sizing: border-box;
     border: 1px solid #f0f0f0;
 }
 
-/* 7. ഫോം എലമെന്റുകൾ */
-input, textarea { 
+/* 6. ഫോം എലമെന്റുകൾ */
+#student-inputs {
+    margin-bottom: 10px;
+}
+
+input, textarea, select { 
     width: 100%; 
-    padding: 15px; 
-    margin: 10px 0; 
+    padding: 14px; 
+    margin: 8px 0; 
     border: 1.5px solid #e0e0e0; 
     border-radius: 12px; 
     font-size: 1rem;
-    box-sizing: border-box;
     font-family: inherit;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--sec);
 }
 
 .primary-btn { 
@@ -196,25 +181,51 @@ input, textarea {
     padding: 16px; 
     border-radius: 12px; 
     cursor: pointer; 
-    font-size: 1.1rem; 
+    font-size: 1rem; 
     font-weight: bold;
     margin-top: 10px;
+    transition: 0.3s;
 }
 
-/* അഡ്മിൻ പാനലിലെ ഫോമുകൾക്കുള്ള സ്റ്റൈൽ */
-.admin-form {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+.primary-btn:active {
+    transform: scale(0.98);
 }
 
-/* 8. റെസ്പോൺസീവ് (മൊബൈൽ ഫോണുകൾക്കായി) */
+.back-home-btn {
+    width: 100%;
+    margin-top: 12px;
+    background: #757575;
+    color: white;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* 7. ടേബിൾ സ്റ്റൈൽ (റിസൾട്ടിനായി) */
+.table-container {
+    overflow-x: auto;
+    margin-top: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+/* 8. റെസ്പോൺസീവ് */
 @media (max-width: 480px) {
     .semester-grid { 
         grid-template-columns: repeat(2, 1fr); 
         gap: 12px; 
-        padding: 10px; 
     }
-    .sem-card { padding: 15px 10px; }
-    .sem-icon { width: 50px; height: 50px; }
+    .logo-area h1 { font-size: 0.9rem; }
+    .card { padding: 15px; }
 }
