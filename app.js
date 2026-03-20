@@ -148,9 +148,57 @@ function loadContents() {
         }).join('');
     });
 }
+// --- 5. പരിഷ്കരിച്ച അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
 
-// --- 5. ADMIN FUNCTIONS ---
+// 1. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക (Detailed Content Upload)
+async function uploadDetailedContent() {
+    const sem = document.getElementById('upload-sem-select').value;
+    const subject = document.getElementById('content-subject').value;
+    const chapter = document.getElementById('content-chapter').value;
+    const part = document.getElementById('content-part').value;
+    const customTime = document.getElementById('content-datetime').value;
+    
+    const video = document.getElementById('link-video').value;
+    const audio = document.getElementById('link-audio').value;
+    const pdf = document.getElementById('link-pdf').value;
 
+    if(!subject || !chapter) { 
+        alert("വിഷയവും പാഠത്തിന്റെ പേരും നിർബന്ധമാണ്!"); 
+        return; 
+    }
+
+    try {
+        await db.collection("contents").add({
+            semester: parseInt(sem),
+            subject: subject,
+            chapter: chapter,
+            part: part || "",
+            displayDate: customTime || new Date().toISOString(),
+            links: {
+                video: video || "",
+                audio: audio || "",
+                pdf: pdf || ""
+            },
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!`);
+        
+        // ഫോം ക്ലിയർ ചെയ്യുന്നു
+        document.getElementById('content-subject').value = "";
+        document.getElementById('content-chapter').value = "";
+        document.getElementById('content-part').value = "";
+        document.getElementById('content-datetime').value = "";
+        document.getElementById('link-video').value = "";
+        document.getElementById('link-audio').value = "";
+        document.getElementById('link-pdf').value = "";
+        
+    } catch (error) {
+        alert("അപ്‌ലോഡിംഗിൽ തകരാർ സംഭവിച്ചു!");
+    }
+}
+
+// 2. ചോദ്യങ്ങൾ സേവ് ചെയ്യുക (Add Question)
 async function addQuestionToDB() {
     const sem = prompt("ഈ ചോദ്യം ഏത് സെമസ്റ്ററിലേക്കാണ്? (1,2,3,4,5)", "1");
     if(!sem) return;
@@ -173,6 +221,89 @@ async function addQuestionToDB() {
     document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
 }
 
+// 3. പരീക്ഷാ ഫലങ്ങൾ പരിശോധിക്കുക (Fetch Results)
+async function fetchResults() {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് കാണേണ്ടത്?", "1");
+    if(!sem) return;
+    
+    const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
+    const body = document.getElementById('results-body');
+    if(!body) return;
+
+    if(snap.empty) {
+        body.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>";
+        return;
+    }
+
+    body.innerHTML = snap.docs.map(doc => {
+        const d = doc.data();
+        return `<tr>
+            <td style="padding:10px; border-bottom:1px solid #eee;">
+                <b>${d.studentName}</b><br>
+                <small style="color:#666;">📍 ${d.studentPlace || ""}</small>
+            </td>
+            <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;"><b>${d.score}</b></td>
+            <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;">
+                <button onclick="deleteSingleResult('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;">Del</button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// 4. റിസൾട്ട് പബ്ലിഷ്/ഹൈഡ് ചെയ്യുക
+function toggleResultStatus(status) {
+    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് പബ്ലിഷ്/ഹൈഡ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
+    if(!sem) return;
+    db.collection("settings").doc(`resultMode_${sem}`).set({ active: status })
+    .then(() => alert(`Semester ${sem} റിസൾട്ട് മോഡ് മാറ്റി.`));
+}
+
+// 5. വിദ്യാർത്ഥികളുടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുക (Doubt Management)
+function loadDoubtsForAdmin() {
+    db.collection("doubts").orderBy("timestamp", "desc").onSnapshot(snap => {
+        const list = document.getElementById('admin-doubts-list');
+        if (!list) return;
+
+        if (snap.empty) {
+            list.innerHTML = "<p style='text-align:center; padding:10px;'>പുതിയ സംശയങ്ങൾ ഒന്നുമില്ല.</p>";
+            return;
+        }
+
+        list.innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            return `
+            <div style="border-bottom: 1px solid #ddd; padding: 12px; margin-bottom: 8px; background: white; border-radius: 8px; text-align:left;">
+                <div style="font-size:0.8rem; color:#777; display:flex; justify-content:space-between;">
+                    <span><b>${d.studentName}</b> (S${d.semester})</span>
+                </div>
+                <p style="margin: 5px 0; color: #333;"><b>❓ സംശയം:</b> ${d.question}</p>
+                <div id="reply-box-${doc.id}">
+                    ${d.reply ? 
+                        `<p style="color: #2e7d32; margin:0; padding-top:5px;"><b>✅ മറുപടി:</b> ${d.reply}</p>` : 
+                        `<textarea id="rep-text-${doc.id}" placeholder="മറുപടി ടൈപ്പ് ചെയ്യുക..." style="height:50px; margin-top:5px;"></textarea>
+                         <button onclick="sendReply('${doc.id}')" class="primary-btn" style="padding:8px; font-size:0.8rem; background:var(--sec); width:auto;">Reply</button>`
+                    }
+                </div>
+                <button onclick="deleteDoubt('${doc.id}')" style="background:none; border:none; color:red; font-size:0.7rem; cursor:pointer; margin-top:5px;">Delete Doubt</button>
+            </div>`;
+        }).join('');
+    });
+}
+
+// സംശയത്തിന് മറുപടി അയക്കാൻ
+async function sendReply(id) {
+    const text = document.getElementById(`rep-text-${id}`).value;
+    if(!text) return;
+    await db.collection("doubts").doc(id).update({ reply: text, repliedAt: Date.now() });
+    alert("മറുപടി അയച്ചു!");
+}
+
+// സംശയം ഡിലീറ്റ് ചെയ്യാൻ
+async function deleteDoubt(id) {
+    if(confirm("ഈ സംശയം ഒഴിവാക്കട്ടെ?")) await db.collection("doubts").doc(id).delete();
+}
+
+// 6. ഡിലീറ്റ് ഫങ്ക്ഷനുകൾ (Delete All Questions & Results)
 async function deleteAllQuestions() {
     const sem = prompt("ഏത് സെമസ്റ്ററിലെ ചോദ്യങ്ങളാണ് ഡിലീറ്റ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
     if(!sem) return;
@@ -198,36 +329,17 @@ async function clearAllResults() {
     }
 }
 
-async function fetchResults() {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് കാണേണ്ടത്?", "1");
-    if(!sem) return;
-    const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
-    const body = document.getElementById('results-body');
-    if(!body) return;
-    body.innerHTML = snap.docs.map(doc => {
-        const d = doc.data();
-        return `<tr>
-            <td style="padding:10px; border-bottom:1px solid #eee;">${d.studentName}<br><small>${d.studentPlace}</small></td>
-            <td style="padding:10px; border-bottom:1px solid #eee;"><b>${d.score}</b></td>
-            <td style="padding:10px; border-bottom:1px solid #eee;"><button onclick="deleteSingleResult('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:4px;">Del</button></td>
-        </tr>`;
-    }).join('');
-}
-
 async function deleteSingleResult(id) {
     if(confirm("ഈ റിസൾട്ട് ഒഴിവാക്കട്ടെ?")) {
         await db.collection("results").doc(id).delete();
-        alert("നീക്കം ചെയ്തു.");
         fetchResults();
     }
 }
 
-function toggleResultStatus(status) {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് പബ്ലിഷ്/ഹൈഡ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
-    if(!sem) return;
-    db.collection("settings").doc(`resultMode_${sem}`).set({ active: status })
-    .then(() => alert(`Semester ${sem} റിസൾട്ട് മോഡ് മാറ്റി.`));
-}
+// അഡ്മിൻ പാനലിൽ എത്തുമ്പോൾ സംശയങ്ങൾ ലോഡ് ചെയ്യാൻ
+// showSection('admin-screen') ഫങ്ക്ഷനിൽ ഇത് കൂടി ചേർക്കുക:
+// if(id === 'admin-screen') loadDoubtsForAdmin();
+
 
 // --- 6. EXAM LOGIC ---
 async function startExam() {
