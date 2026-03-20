@@ -103,9 +103,10 @@
             </div>
         </div>
 
-        <div id="admin-screen" class="container" style="display:none;">
+                <div id="admin-screen" class="container" style="display:none;">
             <div class="card">
-                <h3>Admin Control Panel</h3>
+                <h2 style="text-align:center; color: var(--main);">Admin Control Panel</h2>
+                
                 <hr>
                 <h4>1. ചോദ്യങ്ങൾ നിയന്ത്രിക്കുക</h4>
                 <div class="admin-form">
@@ -147,17 +148,56 @@
                         <tbody id="results-body"></tbody>
                     </table>
                 </div>
+
+                <hr style="margin:25px 0;">
+                <h4 style="color: #33691e;">3. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
+                <div class="admin-form" style="background: #f1f8e9; padding: 15px; border-radius: 12px; border: 1px solid #c5e1a5;">
+                    <label style="font-weight: bold; color: #33691e;">സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക:</label>
+                    <select id="upload-sem-select" style="border: 2px solid #33691e; margin-bottom: 10px;">
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                    </select>
+
+                    <input type="text" id="content-subject" placeholder="വിഷയം (ഉദാ: ഫിഖ്ഹ്)">
+                    <input type="text" id="content-chapter" placeholder="പാഠം / ചാപ്റ്റർ പേര്">
+                    <input type="text" id="content-part" placeholder="ഭാഗം (ഉദാ: ഭാഗം 1, ക്ലാസ് 10)">
+                    
+                    <p style="margin:5px 0 0; font-size:0.8rem; color: #555;">ക്ലാസ്സ് തിയതിയും സമയവും:</p>
+                    <input type="datetime-local" id="content-datetime">
+
+                    <input type="text" id="link-video" placeholder="Video Link (YouTube/Drive)">
+                    <input type="text" id="link-audio" placeholder="Audio Link">
+                    <input type="text" id="link-pdf" placeholder="PDF Link">
+                    
+                    <button onclick="uploadDetailedContent()" class="primary-btn" style="background:#33691e;">Upload Class</button>
+                </div>
+
+                <hr style="margin:25px 0;">
+                <h4>4. വിദ്യാർത്ഥികളുടെ സംശയങ്ങൾ & മറുപടി</h4>
+                <div id="admin-doubts-list" class="card" style="max-height: 400px; overflow-y: auto; background: #fffde7; border: 1px solid #ffe082;">
+                    <p style="text-align:center; color: #795548;">സംശയങ്ങൾ പരിശോധിക്കുന്നു...</p>
+                </div>
             </div>
         </div>
 
         <div id="student-screen" class="container" style="display:none;">
             <div id="class-list">
-                <h3>നിങ്ങളുടെ ക്ലാസുകൾ</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="color: var(--main); margin: 0;">നിങ്ങളുടെ ക്ലാസുകൾ</h2>
+                </div>
                 <div id="content-display"></div>
             </div>
-            <div id="exam-box" style="display:none;"></div>
+            
+            <div id="exam-box" style="display:none; text-align: center;">
+                <div class="card" style="border-top: 5px solid var(--danger);">
+                    <h2 style="color: var(--danger);">Exam Ongoing...</h2>
+                    <div id="quiz-area"></div>
+                </div>
+            </div>
         </div>
-    </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
