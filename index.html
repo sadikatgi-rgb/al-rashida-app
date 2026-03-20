@@ -18,7 +18,7 @@
         <a href="#" onclick="showAdminLogin(); closeNav();">🔐 അഡ്മിൻ ലോഗിൻ</a>
         <a href="#" onclick="showSection('important-msg'); closeNav();">📢 പ്രധാന അറിയിപ്പുകൾ</a>
         <a href="#" onclick="showSection('app-info'); closeNav();">ℹ️ ആപ്പിനെക്കുറിച്ച്</a>
-        <a href="#" id="logout-btn-sidebar" onclick="logout()" style="display:none; color: #ff5252;">🚪 ലോഗൗട്ട്</a>
+        <a href="#" id="logout-btn-sidebar" onclick="logout()" style="display:none; color: #ff5252; border-top: 1px solid #004d40; margin-top: 10px;">🚪 ലോഗൗട്ട്</a>
     </div>
 
     <div id="app">
@@ -27,7 +27,7 @@
             <div class="logo-area">
                 <h1>AL RASHIDA ONLINE DARS</h1>
             </div>
-            <button id="logout-btn" onclick="logout()" style="display:none;">Logout</button>
+            <button id="logout-btn" onclick="logout()" style="display:none; background: #c62828; color:white; border:none; padding:5px 10px; border-radius:5px;">Logout</button>
         </header>
 
         <div id="home-screen" class="container">
@@ -61,28 +61,28 @@
             </div>
         </div>
 
-        <div id="login-screen" class="container" style="display:none;">
-            <div class="card">
-                <h2 id="login-title">Login</h2>
-                <div id="student-inputs">
-                    <input type="text" id="student-name" placeholder="നിങ്ങളുടെ പേര് (Full Name)">
-                    <input type="text" id="student-place" placeholder="സ്ഥലം (Place)">
-                    <hr style="margin: 15px 0; border: 0.5px solid #eee;">
+        <div id="important-msg" class="container" style="display:none;">
+            <div class="card" style="border-left: 5px solid #d32f2f; background: #fff;">
+                <h2 style="color: #d32f2f; display: flex; align-items: center; gap: 10px;">
+                    ⚠️ പ്രധാന ശ്രദ്ധയ്ക്ക്!
+                </h2>
+                <div style="text-align: left; line-height: 1.8;">
+                    <p>നിങ്ങളുടെ <b>യൂസർനെയിമും പാസ്‌വേർഡും</b> ഒരിക്കലും മറ്റൊരാൾക്ക് കൈമാറാൻ പാടില്ല.</p>
+                    <p>ഓരോരുത്തരും അവരുടെ <b>പേര്, ഫോൺ നമ്പർ, സ്ഥലം</b> എന്നിവ വാട്‌സാപ്പിൽ അയച്ചു തരുക.</p>
+                    <p>ലോഗിൻ ചെയ്യുമ്പോൾ പേരും സ്ഥലവും കൃത്യമായി നൽകുക. എക്സാം സമയത്ത് ഇത് അത്യാവശ്യമാണ്.</p>
                 </div>
-                <input type="text" id="email" placeholder="ഫോൺ നമ്പർ (ID)">
-                <input type="password" id="password" placeholder="പാസ്‌വേർഡ്">
-                <button onclick="login()" class="primary-btn">Login</button>
-                <button onclick="showSection('home-screen')" class="back-home-btn">Back to Home</button>
+                <button onclick="showSection('home-screen')" class="primary-btn" style="background: #00796b;">ശരി</button>
             </div>
         </div>
 
-        <div id="important-msg" class="container" style="display:none;">
-            <div class="card" style="border-left: 5px solid #ff5252;">
-                <h2 style="color: #d32f2f;">⚠️ പ്രധാന ശ്രദ്ധയ്ക്ക്!</h2>
-                <p>നിങ്ങളുടെ <b>യൂസർനെയിമും പാസ്‌വേർഡും</b> ഒരിക്കലും മറ്റൊരാൾക്ക് കൈമാറാൻ പാടില്ല.</p>
-                <p>ഓരോരുത്തരും അവരുടെ <b>പേര്, ഫോൺ നമ്പർ, സ്ഥലം</b> എന്നിവ വാട്‌സാപ്പിൽ അയച്ചു തരുക.</p>
-                <p>ലോഗിൻ ചെയ്യുമ്പോൾ പേരും സ്ഥലവും കൃത്യമായി നൽകുക. എക്സാം സമയത്ത് ഇത് അത്യാവശ്യമാണ്.</p>
-                <button onclick="showSection('home-screen')" class="primary-btn">ശരി</button>
+        <div id="app-info" class="container" style="display:none;">
+            <div class="card" style="text-align: center;">
+                <h2 style="color: #004d40;">ആപ്പിനെക്കുറിച്ച്</h2>
+                <div style="text-align: left; line-height: 1.8; margin-bottom: 20px;">
+                    <p>ഉസ്താദ് മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി വനിതകൾക്കായി നടത്തുന്ന ഓൺലൈൻ ദർസ് ആപ്പ്.</p>
+                    <p>ക്ലാസുകൾ കേൾക്കാനും, പഠിക്കാനും, സംശയങ്ങൾ ചോദിക്കാനും ഈ ആപ്പ് നിങ്ങളെ സഹായിക്കുന്നു. വർഷത്തിൽ ഒരിക്കൽ ഈ ആപ്പിലൂടെ എക്സാം ഉണ്ടായിരിക്കും.</p>
+                </div>
+                <button onclick="showSection('home-screen')" class="primary-btn">തിരികെ</button>
             </div>
         </div>
 
@@ -90,36 +90,61 @@
             <div class="card">
                 <h3>Admin Control Panel</h3>
                 
-                <div class="status-controls" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    <button onclick="toggleExam(true)" style="background: #2e7d32; color:white; flex:1; padding: 12px; border:none; border-radius: 10px; cursor:pointer; font-weight:bold;">Start Exam</button>
-                    <button onclick="toggleExam(false)" style="background: #c62828; color:white; flex:1; padding: 12px; border:none; border-radius: 10px; cursor:pointer; font-weight:bold;">End Exam</button>
-                </div>
-                
                 <hr>
                 <h4>1. ചോദ്യങ്ങൾ നിയന്ത്രിക്കുക</h4>
                 <div class="admin-form">
-                    <textarea id="q-text-input" placeholder="ചോദ്യം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
+                    <textarea id="q-text-input" placeholder="ചോദ്യം ടൈപ്പ് ചെയ്യുക..." rows="3"></textarea>
                     <input type="text" id="opt0" placeholder="Option 1">
                     <input type="text" id="opt1" placeholder="Option 2">
                     <input type="text" id="opt2" placeholder="Option 3">
                     <input type="text" id="opt3" placeholder="Option 4">
+                    <p>ശരിയായ ഉത്തരം തിരഞ്ഞെടുക്കുക:</p>
+                    <select id="correct-idx-input">
+                        <option value="0">Option 1</option>
+                        <option value="1">Option 2</option>
+                        <option value="2">Option 3</option>
+                        <option value="3">Option 4</option>
+                    </select>
                     <button onclick="addQuestionToDB()" class="primary-btn">Save Question</button>
-                </div>
-                <button onclick="deleteAllQuestions()" style="width:100%; margin-top:5px; background: #666; color:white; padding:10px; border:none; border-radius:10px;">എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യുക</button>
-
-                <hr style="margin:20px 0;">
-                <h4>2. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
-                <div class="admin-form">
-                    <input type="text" id="content-subject" placeholder="വിഷയം (eg: ഫിഖ്ഹ്)">
-                    <input type="text" id="link-video" placeholder="YouTube Link">
-                    <input type="text" id="link-audio" placeholder="Audio Drive Link">
-                    <input type="text" id="link-pdf" placeholder="PDF Drive Link">
-                    <button onclick="uploadDetailedContent()" class="primary-btn">Upload Class</button>
+                    <button onclick="loadAdminQuestions()" style="background:#607d8b;" class="primary-btn">ചോദ്യങ്ങൾ കാണുക / Edit</button>
+                    
+                    <button onclick="deleteAllQuestions()" style="background: #c62828; color:white; border:none; padding:12px; border-radius:10px; width:100%; margin-top:5px; cursor:pointer;">എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യുക</button>
                 </div>
 
-                <hr style="margin:20px 0;">
-                <h4>3. പരീക്ഷാ ഫലങ്ങൾ</h4>
-                <div id="results-body"></div>
+                <hr style="margin:25px 0;">
+                <h4>2. പരീക്ഷാ ഫലങ്ങൾ</h4>
+                <div style="display: flex; gap:10px;">
+                    <button onclick="toggleResultStatus(true)" style="flex:1; background: #2e7d32; color:white; padding:10px; border:none; border-radius:5px;">Publish Results</button>
+                    <button onclick="toggleResultStatus(false)" style="flex:1; background: #c62828; color:white; padding:10px; border:none; border-radius:5px;">Hide Results</button>
+                </div>
+                <button onclick="fetchResults()" class="primary-btn" style="margin-top:10px;">Refresh Mark List</button>
+                
+                <button onclick="clearAllResults()" style="background: #c62828; color:white; border:1.5px solid #000; padding:8px; border-radius:5px; width:100%; margin-top:5px; cursor:pointer; font-weight:bold;">Clear All Results</button>
+
+                <div class="table-container" style="margin-top:15px; overflow-x:auto;">
+                    <table>
+                        <thead>
+                            <tr style="background: var(--main); color:white;">
+                                <th>വിദ്യാർത്ഥി</th>
+                                <th>മാർക്ക്</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="login-screen" class="container" style="display:none;">
+            <div class="card">
+                <h2 style="text-align:center;">Login</h2>
+                <input type="text" id="student-name" placeholder="Full Name">
+                <input type="text" id="student-place" placeholder="Place">
+                <input type="text" id="email" placeholder="Phone">
+                <input type="password" id="password" placeholder="Password">
+                <button onclick="login()" class="primary-btn">Login</button>
+                <button onclick="showSection('home-screen')" class="back-home-btn">Back</button>
             </div>
         </div>
 
