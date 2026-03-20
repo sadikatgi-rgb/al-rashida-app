@@ -152,8 +152,9 @@ header {
     box-shadow: 0 8px 25px rgba(0,0,0,0.05); 
     border: 1px solid #f0f0f0;
 }
+/* --- പരിഷ്കരിച്ച ഭാഗം 6, 7, 8 --- */
 
-/* 6. ഫോം എലമെന്റുകൾ */
+/* 6. ഫോം എലമെന്റുകൾ & സംശയങ്ങൾ (Doubt Box) */
 #student-inputs {
     margin-bottom: 10px;
 }
@@ -167,10 +168,12 @@ input, textarea, select {
     font-size: 1rem;
     font-family: inherit;
     outline: none;
+    background: var(--white);
 }
 
-input:focus {
+input:focus, select:focus {
     border-color: var(--sec);
+    box-shadow: 0 0 5px rgba(0, 121, 107, 0.2);
 }
 
 .primary-btn { 
@@ -185,10 +188,21 @@ input:focus {
     font-weight: bold;
     margin-top: 10px;
     transition: 0.3s;
+    text-align: center;
+    text-decoration: none;
+    display: block;
 }
 
 .primary-btn:active {
     transform: scale(0.98);
+}
+
+/* അഡ്മിൻ പാനലിലെ സംശയങ്ങൾക്കുള്ള ബോക്സ് */
+#admin-doubts-list textarea {
+    height: 70px;
+    font-size: 0.9rem;
+    margin-top: 5px;
+    border-color: #ffd54f; /* നേരിയ മഞ്ഞ ബോർഡർ */
 }
 
 .back-home-btn {
@@ -207,11 +221,19 @@ input:focus {
 .table-container {
     overflow-x: auto;
     margin-top: 15px;
+    background: white;
+    border-radius: 10px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+}
+
+th {
+    background-color: var(--main);
+    color: white;
+    font-weight: bold;
 }
 
 th, td {
@@ -220,12 +242,32 @@ th, td {
     border-bottom: 1px solid #eee;
 }
 
-/* 8. റെസ്പോൺസീവ് */
+/* വരികൾ മാറി മാറി നിറം വരാൻ (Zebra striping) */
+tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+/* 8. റെസ്പോൺസീവ് (മൊബൈൽ ക്രമീകരണങ്ങൾ) */
 @media (max-width: 480px) {
     .semester-grid { 
         grid-template-columns: repeat(2, 1fr); 
         gap: 12px; 
     }
-    .logo-area h1 { font-size: 0.9rem; }
+    
     .card { padding: 15px; }
+
+    /* ക്ലാസ് ലിസ്റ്റിലെ വീഡിയോ/ഓഡിയോ ബട്ടണുകൾ മൊബൈലിൽ ഓരോ വരിയായി വരാൻ */
+    #content-display .primary-btn {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 12px;
+    }
+
+    .logo-area h1 { font-size: 0.9rem; }
+    
+    input, textarea, select {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
 }
+
