@@ -183,28 +183,52 @@ function initStudentApp() {
 }
 
 function loadContents() {
+    const display = document.getElementById('content-display');
+    const adminPanel = document.getElementById('admin-semester-tools');
+    const semSpan = document.getElementById('current-sem-display');
+
+    // 1. അഡ്മിൻ ആണെങ്കിൽ സെമസ്റ്റർ പേജിലെ കൺട്രോൾ പാനൽ കാണിക്കുന്നു
+    const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
+    
+    if (adminPanel) {
+        adminPanel.style.display = isAdmin ? 'block' : 'none';
+        if (semSpan) semSpan.innerText = selectedSem;
+    }
+
+    // 2. ഡാറ്റാബേസിൽ നിന്ന് ക്ലാസുകൾ തത്സമയം (Real-time) എടുക്കുന്നു
     db.collection("contents")
     .where("semester", "==", parseInt(selectedSem))
     .orderBy("timestamp", "desc")
     .onSnapshot(snap => {
-        const display = document.getElementById('content-display');
         if (!display) return;
         
+        if (snap.empty) {
+            display.innerHTML = "<p style='text-align:center; padding:20px;'>ഈ സെമസ്റ്ററിൽ ക്ലാസുകൾ ലഭ്യമല്ല.</p>";
+            return;
+        }
+
         display.innerHTML = snap.docs.map(doc => {
             const data = doc.data();
             const l = data.links || {};
             return `
-            <div class="card" style="border-top: 5px solid var(--main);">
-                <h3 style="color: var(--main);">${data.subject}</h3>
+            <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px;">
+                <small style="color:#666;">${data.displayDate || ''}</small>
+                <h4 style="margin:5px 0; color:var(--main);">${data.subject}: ${data.chapter}</h4>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top:10px;">
-                    ${l.video ? `<a href="${l.video}" target="_blank" class="primary-btn" style="background:var(--danger); text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">Video</a>` : ''}
-                    ${l.audio ? `<a href="${l.audio}" target="_blank" class="primary-btn" style="background:#0288d1; text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">Audio</a>` : ''}
-                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" class="primary-btn" style="background:#e64a19; text-decoration:none; padding:10px; width:auto; font-size:0.9rem;">PDF</a>` : ''}
+                    ${l.video ? `<a href="${l.video}" target="_blank" onclick="trackActivity('${doc.id}', 'Video')" class="primary-btn" style="background:#e74c3c; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">🎥 Video</a>` : ''}
+                    ${l.audio ? `<a href="${l.audio}" target="_blank" onclick="trackActivity('${doc.id}', 'Audio')" class="primary-btn" style="background:#0288d1; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">🎧 Audio</a>` : ''}
+                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" onclick="trackActivity('${doc.id}', 'PDF')" class="primary-btn" style="background:#27ae60; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">📄 PDF</a>` : ''}
+                    
+                    ${isAdmin ? `
+                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:0 12px; cursor:pointer; font-size:0.8rem;">📊 Track</button>
+                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:0 8px; cursor:pointer;">🗑️</button>
+                    ` : ''}
                 </div>
             </div>`;
         }).join('');
     });
 }
+
 // --- 5. പരിഷ്കരിച്ച അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
 
 // 1. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക (Detailed Content Upload)
@@ -415,3 +439,94 @@ async function startExam() {
 }
 
 function logout() { auth.signOut().then(() => location.reload()); }
+// --- 7. പുതിയ ട്രാക്കിംഗ് & അഡ്മിൻ ഫീച്ചറുകൾ (അവസാന ഭാഗം) ---
+
+// 1. കുട്ടികൾ ഓരോ ക്ലാസ്സും കാണുന്നത് രേഖപ്പെടുത്താൻ
+async function trackActivity(contentId, type) {
+    // അഡ്മിൻ ലോഗിൻ ചെയ്തിരിക്കുകയാണെങ്കിൽ ട്രാക്കിംഗ് വേണ്ട
+    if (auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin')) return;
+
+    try {
+        await db.collection("activity").add({
+            studentName: currentStudentName || "Unknown",
+            studentPlace: currentStudentPlace || "Unknown",
+            contentId: contentId,
+            type: type, // Video, PDF, or Audio
+            semester: selectedSem,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log("Activity tracked:", type);
+    } catch (error) {
+        console.error("Tracking Error:", error);
+    }
+}
+
+// 2. അഡ്മിന് ഓരോ ക്ലാസ്സിനും നേരെ കുട്ടികളുടെ ലിസ്റ്റ് കാണാൻ
+async function viewTracking(contentId, title) {
+    const modal = document.getElementById('tracking-modal');
+    const list = document.getElementById('tracking-list-content');
+    
+    if(!modal || !list) { 
+        alert("ട്രാക്കിംഗ് മോഡൽ (HTML Modal) നിങ്ങളുടെ പേജിൽ കണ്ടെത്തിയില്ല!"); 
+        return; 
+    }
+
+    modal.style.display = 'flex'; // മോഡൽ കാണിക്കുന്നു
+    list.innerHTML = "<p style='text-align:center;'>വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>";
+
+    try {
+        const snap = await db.collection("activity")
+            .where("contentId", "==", contentId)
+            .orderBy("timestamp", "desc")
+            .get();
+
+        if(snap.empty) {
+            list.innerHTML = "<p style='text-align:center; padding:20px;'>ഈ ക്ലാസ്സ് ഇതുവരെ ആരും കണ്ടിട്ടില്ല.</p>";
+            return;
+        }
+
+        let html = `<p style='font-size:0.8rem; color:#555; margin-bottom:10px;'><b>ക്ലാസ്സ്:</b> ${title}</p>`;
+        html += `<table style='width:100%; border-collapse:collapse; font-size:0.85rem;'>
+                    <tr style='background:#f1f1f1;'>
+                        <th style='padding:8px; text-align:left; border:1px solid #ddd;'>വിദ്യാർത്ഥി</th>
+                        <th style='padding:8px; text-align:center; border:1px solid #ddd;'>വിഭാഗം</th>
+                    </tr>`;
+        
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `<tr>
+                        <td style='padding:8px; border:1px solid #ddd;'>
+                            <b>${d.studentName}</b><br>
+                            <small>📍 ${d.studentPlace}</small>
+                        </td>
+                        <td style='padding:8px; text-align:center; border:1px solid #ddd; color:green;'>✅ ${d.type}</td>
+                     </tr>`;
+        });
+        
+        list.innerHTML = html + "</table>";
+    } catch (error) {
+        list.innerHTML = "<p style='color:red;'>വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</p>";
+        console.error(error);
+    }
+}
+
+// 3. അഡ്മിന് സെമസ്റ്റർ പേജിൽ നിന്ന് നേരിട്ട് ക്ലാസ്സ് ഡിലീറ്റ് ചെയ്യാൻ
+async function deleteContent(id) {
+    if(confirm("ഈ ക്ലാസ്സ് സ്ഥിരമായി ഒഴിവാക്കട്ടെ?")) {
+        try {
+            await db.collection("contents").doc(id).delete();
+            alert("ക്ലാസ്സ് ഒഴിവാക്കി.");
+            // loadContents() വഴി ലിസ്റ്റ് പുതുക്കുന്നു
+        } catch (error) {
+            alert("ഡിലീറ്റ് ചെയ്യുന്നതിൽ പരാജയം സംഭവിച്ചു.");
+        }
+    }
+}
+
+// 4. അഡ്മിന് ആ സെമസ്റ്ററിലെ സംശയങ്ങൾ നേരിട്ട് കാണാൻ
+function fetchDoubtsForCurrentSem() {
+    alert(`സെമസ്റ്റർ ${selectedSem}-ലെ സംശയങ്ങൾ പരിശോധിക്കുന്നു...`);
+    showSection('admin-screen'); // അഡ്മിൻ സ്ക്രീനിലേക്ക് കൊണ്ടുപോകുന്നു
+    loadDoubtsForAdmin(); // അവിടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു
+}
+
