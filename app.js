@@ -70,41 +70,76 @@ function showAdminLogin() {
 }
 
 // --- 3. LOGIN FUNCTION ---
+// --- ഗ്ലോബൽ വേരിയബിളുകൾ (ഫങ്ക്ഷന് പുറത്ത് ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക) ---
+let currentStudentName = "";
+let currentStudentPlace = "";
+
 async function login() {
     const nameInput = document.getElementById('student-name');
     const placeInput = document.getElementById('student-place');
-    const phone = document.getElementById('email').value; 
-    const pass = document.getElementById('password').value;
+    const phoneInput = document.getElementById('email');
+    const passInput = document.getElementById('password');
 
+    // വാല്യൂസ് എടുക്കുന്നു
+    const phone = phoneInput.value;
+    const pass = passInput.value;
     const name = nameInput ? nameInput.value : "";
     const place = placeInput ? placeInput.value : "";
 
-    // അഡ്മിൻ അല്ലെങ്കിൽ മാത്രം പേരും സ്ഥലവും നിർബന്ധം
+    // 1. വാലിഡേഷൻ: അഡ്മിൻ അല്ലെങ്കിൽ മാത്രം പേരും സ്ഥലവും നിർബന്ധം
     if (selectedSem !== 'admin' && (!name || !place || !phone || !pass)) {
         alert("പേര്, സ്ഥലം, ഫോൺ നമ്പർ, പാസ്‌വേർഡ് എന്നിവ നിർബന്ധമാണ്");
         return;
     }
 
+    // 2. ഇമെയിൽ ഫോർമാറ്റ് സെറ്റ് ചെയ്യുന്നു
     let email;
     if (selectedSem === 'admin') {
         email = phone.includes("@") ? phone : phone + "@alrashida.com";
     } else {
+        // ഉദാഹരണത്തിന്: 9876543210@s1.com
         email = `${phone}@s${selectedSem}.com`;
     }
 
     try {
+        // 3. ഫയർബേസ് ലോഗിൻ ശ്രമിക്കുന്നു
         await auth.signInWithEmailAndPassword(email, pass);
+
+        // 4. ലോഗിൻ സക്സസ് ആയാൽ ഉടൻ ഫോം ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുന്നു
+        if (nameInput) nameInput.value = "";
+        if (placeInput) placeInput.value = "";
+        phoneInput.value = "";
+        passInput.value = "";
+
+        // 5. ലോഗിൻ സ്റ്റാറ്റസും പേരും സ്ഥലവും ലോക്കൽ സ്റ്റോറേജിൽ സേവ് ചെയ്യുന്നു
+        // (ഇത് ആപ്പിൽ നിന്ന് എക്സിറ്റ് ആയി വന്നാലും ലോഗിൻ നിലനിർത്താൻ സഹായിക്കും)
+        if (selectedSem !== 'admin') {
+            localStorage.setItem(`isLoggedIn_S${selectedSem}`, "true");
+            localStorage.setItem(`studentName`, name);
+            localStorage.setItem(`studentPlace`, place);
+            
+            currentStudentName = name;
+            currentStudentPlace = place;
+        }
+
+        // 6. സ്ക്രീൻ മാറ്റുന്നു
         if (selectedSem === 'admin') {
             showSection('admin-screen');
         } else {
             showSection('student-screen');
-            initStudentApp();
+            // നിങ്ങളുടെ സ്റ്റുഡന്റ് ആപ്പ് ലോഡ് ചെയ്യുന്ന ഫങ്ക്ഷൻ
+            if (typeof initStudentApp === 'function') initStudentApp();
+            loadContents(); 
         }
+
+        // 7. ലോഗ് ഔട്ട് ബട്ടണുകൾ കാണിക്കുന്നു
         document.getElementById('logout-btn').style.display = 'block';
         const logoutSidebar = document.getElementById('logout-btn-sidebar');
         if(logoutSidebar) logoutSidebar.style.display = 'block';
+
     } catch (e) { 
-        alert("ലോഗിൻ പരാജയപ്പെട്ടു: വിവരങ്ങൾ പരിശോധിക്കുക!"); 
+        console.error("Login Error:", e);
+        alert("ലോഗിൻ പരാജയപ്പെട്ടു: നിങ്ങളുടെ സെമസ്റ്ററോ വിവരങ്ങളോ പരിശോധിക്കുക!"); 
     }
 }
 
