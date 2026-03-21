@@ -280,26 +280,57 @@ async function uploadDetailedContent() {
 }
 
 // 2. ചോദ്യങ്ങൾ സേവ് ചെയ്യുക (Add Question)
+// പരിഷ്കരിച്ച ചോദ്യം ചേർക്കുന്ന ഫങ്ക്ഷൻ
 async function addQuestionToDB() {
-    const sem = prompt("ഈ ചോദ്യം ഏത് സെമസ്റ്ററിലേക്കാണ്? (1,2,3,4,5)", "1");
-    if(!sem) return;
+    // അഡ്മിൻ നിലവിൽ ഏത് സെമസ്റ്ററിലാണോ ഉള്ളത് അത് ഓട്ടോമാറ്റിക്കായി എടുക്കുന്നു
+    const sem = selectedSem; 
+    
+    // സെമസ്റ്റർ തിരഞ്ഞെടുത്തിട്ടില്ലെങ്കിൽ മുന്നറിയിപ്പ് നൽകുന്നു
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ (S1, S2...) തിരഞ്ഞെടുത്ത് അതിനുള്ളിലെ അഡ്മിൻ പാനലിലൂടെ ചോദ്യം ചേർക്കുക.");
+        return;
+    }
+
     const text = document.getElementById('q-text-input').value;
     const options = [
-        document.getElementById('opt0').value, document.getElementById('opt1').value,
-        document.getElementById('opt2').value, document.getElementById('opt3').value
+        document.getElementById('opt0').value, 
+        document.getElementById('opt1').value,
+        document.getElementById('opt2').value, 
+        document.getElementById('opt3').value
     ];
     const correctIdx = parseInt(document.getElementById('correct-idx-input').value);
 
-    if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
+    // വാലിഡേഷൻ
+    if(!text || options.some(opt => !opt)) { 
+        alert("ചോദ്യവും നാല് ഓപ്ഷനുകളും പൂർണ്ണമായി നൽകണം!"); 
+        return; 
+    }
 
-    await db.collection("questions").add({
-        semester: parseInt(sem),
-        text, options, correctIndex: correctIdx, timestamp: Date.now()
-    });
-    alert("ചോദ്യം സേവ് ചെയ്തു!");
-    document.getElementById('q-text-input').value = "";
-    document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
-    document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
+    // സേവ് ചെയ്യണോ എന്ന് മാത്രം ചോദിക്കുന്നു
+    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
+        try {
+            await db.collection("questions").add({
+                semester: parseInt(sem),
+                text: text,
+                options: options,
+                correctIndex: correctIdx,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // കൃത്യമായ സമയം ലഭിക്കാൻ
+            });
+            
+            alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
+            
+            // ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുന്നു
+            document.getElementById('q-text-input').value = "";
+            document.getElementById('opt0').value = ""; 
+            document.getElementById('opt1').value = "";
+            document.getElementById('opt2').value = ""; 
+            document.getElementById('opt3').value = "";
+            
+        } catch (error) {
+            console.error("Error adding question:", error);
+            alert("ക്ഷമിക്കണം, ചോദ്യം സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.");
+        }
+    }
 }
 
 // 3. പരീക്ഷാ ഫലങ്ങൾ പരിശോധിക്കുക (Fetch Results)
