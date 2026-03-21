@@ -47,13 +47,35 @@ function showSection(id) {
 // സെമസ്റ്റർ കാർഡ് ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function selectSemester(sem) {
     selectedSem = sem;
-    const loginTitle = document.getElementById('login-title');
-    if (loginTitle) loginTitle.innerText = `Semester ${sem} Login`;
-    
-    const studentInputs = document.getElementById('student-inputs');
-    if (studentInputs) studentInputs.style.display = 'block'; // പേരും സ്ഥലവും കാണിക്കുന്നു
-    
-    showSection('login-screen');
+
+    // 1. അഡ്മിൻ ആണെങ്കിൽ ലോഗിൻ ഫോം ഇല്ലാതെ നേരിട്ട് കാണിക്കുന്നു
+    const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
+    if (isAdmin) {
+        if (sem === 'admin') {
+            showSection('admin-screen');
+            loadDoubtsForAdmin();
+        } else {
+            showSection('student-screen');
+            loadContents();
+        }
+        return;
+    }
+
+    // 2. സാധാരണ വിദ്യാർത്ഥിക്ക് നേരത്തെ ലോഗിൻ ചെയ്തതാണോ എന്ന് നോക്കുന്നു
+    const isLogged = localStorage.getItem(`isLoggedIn_S${sem}`);
+    if (isLogged === "true") {
+        currentStudentName = localStorage.getItem(`studentName`) || "";
+        currentStudentPlace = localStorage.getItem(`studentPlace`) || "";
+        showSection('student-screen');
+        loadContents();
+    } else {
+        // ലോഗിൻ ചെയ്തിട്ടില്ലെങ്കിൽ മാത്രം ഫോം കാണിക്കുന്നു
+        const loginTitle = document.getElementById('login-title');
+        if (loginTitle) loginTitle.innerText = `Semester ${sem} Login`;
+        const studentInputs = document.getElementById('student-inputs');
+        if (studentInputs) studentInputs.style.display = 'block'; 
+        showSection('login-screen');
+    }
 }
 
 // സൈഡ്ബാറിലെ അഡ്മിൻ ലോഗിൻ ക്ലിക്ക് ചെയ്യുമ്പോൾ
