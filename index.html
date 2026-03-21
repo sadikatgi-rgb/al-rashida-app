@@ -183,12 +183,28 @@
             </div>
         </div>
 
-        <div id="student-screen" class="container" style="display:none;">
+                <div id="student-screen" class="container" style="display:none;">
             <div id="class-list">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h2 style="color: var(--main); margin: 0;">നിങ്ങളുടെ ക്ലാസുകൾ</h2>
+                    <span id="admin-badge" style="display:none; background: #ffd54f; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; color: #333;">ADMIN MODE</span>
                 </div>
+
+                <div id="admin-semester-tools" style="display:none; background: #f1f8e9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #4caf50;">
+                    <p style="font-weight: bold; color: #2e7d32; margin-bottom: 12px; font-size: 0.85rem;">
+                        ⚙️ Admin Control: Semester <span id="current-sem-display"></span>
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="showSection('admin-screen')" class="primary-btn" style="margin:0; padding:10px; font-size:0.8rem; background:#4caf50;">+ ക്ലാസ് ചേർക്കുക</button>
+                        <button onclick="viewSemesterAttendance()" class="primary-btn" style="margin:0; padding:10px; font-size:0.8rem; background:#1976d2;">📊 കുട്ടികളെ നോക്കുക</button>
+                        <button onclick="openExamManager()" class="primary-btn" style="margin:0; padding:10px; font-size:0.8rem; background:#f57c00;">📝 പരീക്ഷാ കൺട്രോൾ</button>
+                        <button onclick="fetchDoubtsForCurrentSem()" class="primary-btn" style="margin:0; padding:10px; font-size:0.8rem; background:#673ab7;">❓ സംശയങ്ങൾ</button>
+                    </div>
+                </div>
+
                 <div id="content-display"></div>
+                
+                <button onclick="showSection('home-screen')" class="back-home-btn" style="margin-top:20px;">തിരികെ ഹോം പേജിലേക്ക്</button>
             </div>
             
             <div id="exam-box" style="display:none; text-align: center;">
@@ -203,5 +219,27 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     <script src="app.js"></script>
+               <div id="exam-box" style="display:none; text-align: center;">
+            <div class="card" style="border-top: 5px solid var(--danger);">
+                <h2 style="color: var(--danger);">Exam Ongoing...</h2>
+                <div id="quiz-area"></div>
+            </div>
+        </div>
+    </div> <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <script src="app.js"></script>
+
+    <div id="tracking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+        <div style="background:white; width:92%; max-width:450px; border-radius:15px; padding:20px; max-height:80vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h3 style="margin:0;">Attendance Tracker</h3>
+                <button onclick="document.getElementById('tracking-modal').style.display='none'" style="border:none; background:none; font-size:1.8rem; cursor:pointer;">&times;</button>
+            </div>
+            <div id="tracking-list-content"></div>
+        </div>
+    </div>
+        
 </body>
 </html>
+ 
