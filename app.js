@@ -462,37 +462,75 @@ async function deleteDoubt(id) {
 }
 
 // 6. ഡിലീറ്റ് ഫങ്ക്ഷനുകൾ (Delete All Questions & Results)
+
+// തിരഞ്ഞെടുത്ത സെമസ്റ്ററിലെ എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യാൻ
 async function deleteAllQuestions() {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ ചോദ്യങ്ങളാണ് ഡിലീറ്റ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
-    if(!sem) return;
-    if(confirm(`Semester ${sem}-ലെ എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്യട്ടെ?`)) {
-        const snap = await db.collection("questions").where("semester", "==", parseInt(sem)).get();
-        const batch = db.batch();
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        alert("ചോദ്യങ്ങൾ ഡിലീറ്റ് ചെയ്തു.");
+    const sem = selectedSem; // സെലക്ട് ചെയ്ത സെമസ്റ്റർ തനിയെ എടുക്കുന്നു
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം ശ്രമിക്കുക.");
+        return;
+    }
+
+    if(confirm(`Semester ${sem}-ലെ എല്ലാ ചോദ്യങ്ങളും സ്ഥിരമായി ഡിലീറ്റ് ചെയ്യട്ടെ?`)) {
+        try {
+            const snap = await db.collection("questions").where("semester", "==", parseInt(sem)).get();
+            if(snap.empty) {
+                alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും തന്നെയില്ല.");
+                return;
+            }
+            const batch = db.batch();
+            snap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert(`Semester ${sem}-ലെ എല്ലാ ചോദ്യങ്ങളും ഡിലീറ്റ് ചെയ്തു.`);
+            loadAdminQuestions(); // ലിസ്റ്റ് പുതുക്കുന്നു
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
     }
 }
 
+// തിരഞ്ഞെടുത്ത സെമസ്റ്ററിലെ എല്ലാ റിസൾട്ടുകളും നീക്കം ചെയ്യാൻ
 async function clearAllResults() {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ടുകളാണ് നീക്കം ചെയ്യേണ്ടത്? (1,2,3,4,5)");
-    if(!sem) return;
+    const sem = selectedSem;
+    if(!sem || sem === 'admin') {
+        alert("സെമസ്റ്റർ തിരഞ്ഞെടുത്തിട്ടില്ല.");
+        return;
+    }
+
     if(confirm(`Semester ${sem}-ലെ എല്ലാ റിസൾട്ടുകളും നീക്കം ചെയ്യട്ടെ?`)) {
-        const snap = await db.collection("results").where("semester", "==", sem).get();
-        const batch = db.batch();
-        snap.forEach(doc => batch.delete(doc.ref));
-        await batch.commit();
-        alert("റിസൾട്ടുകൾ നീക്കം ചെയ്തു.");
-        fetchResults(); 
+        try {
+            // ശ്രദ്ധിക്കുക: നിങ്ങളുടെ ഡാറ്റാബേസിൽ സെമസ്റ്റർ String ആണോ Number ആണോ എന്ന് പരിശോധിക്കുക
+            // String ആണെങ്കിൽ sem എന്നും Number ആണെങ്കിൽ parseInt(sem) എന്നും നൽകുക.
+            const snap = await db.collection("results").where("semester", "==", sem).get();
+            
+            if(snap.empty) {
+                alert("ഈ സെമസ്റ്ററിൽ റിസൾട്ടുകൾ ഒന്നും തന്നെയില്ല.");
+                return;
+            }
+
+            const batch = db.batch();
+            snap.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+            alert(`Semester ${sem}-ലെ റിസൾട്ടുകൾ നീക്കം ചെയ്തു.`);
+            fetchResults(); // ടേബിൾ പുതുക്കുന്നു
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
     }
 }
 
+// ഒരു പ്രത്യേക റിസൾട്ട് മാത്രം ഒഴിവാക്കാൻ (മാറ്റമില്ല)
 async function deleteSingleResult(id) {
-    if(confirm("ഈ റിസൾട്ട് ഒഴിവാക്കട്ടെ?")) {
-        await db.collection("results").doc(id).delete();
-        fetchResults();
+    if(confirm("ഈ കുട്ടിയുടെ റിസൾട്ട് ഒഴിവാക്കട്ടെ?")) {
+        try {
+            await db.collection("results").doc(id).delete();
+            fetchResults();
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
     }
 }
+
 
 // അഡ്മിൻ പാനലിൽ എത്തുമ്പോൾ സംശയങ്ങൾ ലോഡ് ചെയ്യാൻ
 // showSection('admin-screen') ഫങ്ക്ഷനിൽ ഇത് കൂടി ചേർക്കുക:
