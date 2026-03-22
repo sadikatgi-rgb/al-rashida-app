@@ -328,7 +328,7 @@ async function addQuestionToDB() {
                 options: options,
                 correctIndex: cIdx,
                 // എറർ ഒഴിവാക്കാൻ കൂടുതൽ സുരക്ഷിതമായ ടൈംസ്റ്റാമ്പ് രീതി
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
+                timestamp: new Date().getTime() 
             });
             
             alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
