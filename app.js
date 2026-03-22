@@ -233,12 +233,13 @@ function loadContents() {
         }).join('');
     });
 }
+// --- 5. അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
 
-// --- 5. പരിഷ്കരിച്ച അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
-
-// 1. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക (Detailed Content Upload)
+// ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുന്ന ഫങ്ക്ഷൻ
 async function uploadDetailedContent() {
-    const sem = document.getElementById('upload-sem-select').value;
+    // തിരഞ്ഞെടുത്ത സെമസ്റ്റർ എടുക്കുന്നു
+    const sem = selectedSem; 
+    
     const subject = document.getElementById('content-subject').value;
     const chapter = document.getElementById('content-chapter').value;
     const part = document.getElementById('content-part').value;
@@ -248,9 +249,15 @@ async function uploadDetailedContent() {
     const audio = document.getElementById('link-audio').value;
     const pdf = document.getElementById('link-pdf').value;
 
+    // വാലിഡേഷൻ
     if(!subject || !chapter) { 
         alert("വിഷയവും പാഠത്തിന്റെ പേരും നിർബന്ധമാണ്!"); 
         return; 
+    }
+
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം അപ്‌ലോഡ് ചെയ്യുക.");
+        return;
     }
 
     try {
@@ -260,10 +267,10 @@ async function uploadDetailedContent() {
             chapter: chapter,
             part: part || "",
             displayDate: customTime || new Date().toISOString(),
-            links: {
-                video: video || "",
-                audio: audio || "",
-                pdf: pdf || ""
+            links: { 
+                video: video || "", 
+                audio: audio || "", 
+                pdf: pdf || "" 
             },
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -280,40 +287,12 @@ async function uploadDetailedContent() {
         document.getElementById('link-pdf').value = "";
         
     } catch (error) {
-        alert("അപ്‌ലോഡിംഗിൽ തകരാർ സംഭവിച്ചു!");
+        console.error("Upload Error:", error);
+        alert("അപ്‌ലോഡിംഗിൽ തകരാർ സംഭവിച്ചു: " + error.message);
     }
 }
+// ഫങ്ക്ഷൻ ഇവിടെ അവസാനിക്കുന്നു
 
-// --- 5. പരിഷ്കരിച്ച അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ತಿരുത്തിയത്) ---
-
-async function uploadDetailedContent() {
-    const sem = document.getElementById('upload-sem-select').value;
-    const subject = document.getElementById('content-subject').value;
-    const chapter = document.getElementById('content-chapter').value;
-    const part = document.getElementById('content-part').value;
-    const customTime = document.getElementById('content-datetime').value;
-    
-    const video = document.getElementById('link-video').value;
-    const audio = document.getElementById('link-audio').value;
-    const pdf = document.getElementById('link-pdf').value;
-
-    if(!subject || !chapter) { alert("വിഷയവും പാഠത്തിന്റെ പേരും നിർബന്ധമാണ്!"); return; }
-
-    try {
-        await db.collection("contents").add({
-            semester: parseInt(sem),
-            subject: subject,
-            chapter: chapter,
-            part: part || "",
-            displayDate: customTime || new Date().toISOString(),
-            links: { video: video || "", audio: audio || "", pdf: pdf || "" },
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!`);
-        // ക്ലിയർ ഫീൽഡ്സ്...
-    } catch (error) { alert("അപ്‌ലോഡിംഗിൽ തകരാർ!"); }
-}
-}
 async function addQuestionToDB() {
     const sem = selectedSem; 
     if(!sem || sem === 'admin') {
