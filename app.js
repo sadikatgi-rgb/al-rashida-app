@@ -282,30 +282,34 @@ async function uploadDetailedContent() {
 // 2. ചോദ്യങ്ങൾ സേവ് ചെയ്യുക (Add Question)
 // പരിഷ്കരിച്ച ചോദ്യം ചേർക്കുന്ന ഫങ്ക്ഷൻ
 async function addQuestionToDB() {
-    // അഡ്മിൻ നിലവിൽ ഏത് സെമസ്റ്ററിലാണോ ഉള്ളത് അത് ഓട്ടോമാറ്റിക്കായി എടുക്കുന്നു
-    const sem = selectedSem; 
+    const sem = selectedSem; // ഓട്ടോമാറ്റിക്കായി സെമസ്റ്റർ എടുക്കുന്നു
     
-    // സെമസ്റ്റർ തിരഞ്ഞെടുത്തിട്ടില്ലെങ്കിൽ മുന്നറിയിപ്പ് നൽകുന്നു
     if(!sem || sem === 'admin') {
-        alert("ദയവായി ഒരു സെമസ്റ്റർ (S1, S2...) തിരഞ്ഞെടുത്ത് അതിനുള്ളിലെ അഡ്മിൻ പാനലിലൂടെ ചോദ്യം ചേർക്കുക.");
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത് അതിനുള്ളിലെ അഡ്മിൻ പാനലിലൂടെ ചോദ്യം ചേർക്കുക.");
         return;
     }
 
     const text = document.getElementById('q-text-input').value;
     const options = [
-        document.getElementById('opt0').value, 
-        document.getElementById('opt1').value,
-        document.getElementById('opt2').value, 
-        document.getElementById('opt3').value
+        document.getElementById('opt0').value, document.getElementById('opt1').value,
+        document.getElementById('opt2').value, document.getElementById('opt3').value
     ];
     const correctIdx = parseInt(document.getElementById('correct-idx-input').value);
 
-    // വാലിഡേഷൻ
-    if(!text || options.some(opt => !opt)) { 
-        alert("ചോദ്യവും നാല് ഓപ്ഷനുകളും പൂർണ്ണമായി നൽകണം!"); 
-        return; 
-    }
+    if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
 
+    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
+        await db.collection("questions").add({
+            semester: parseInt(sem),
+            text, options, correctIndex: correctIdx, 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("ചോദ്യം സേവ് ചെയ്തു!");
+        document.getElementById('q-text-input').value = "";
+        document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
+        document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
+    }
+}
     // സേവ് ചെയ്യണോ എന്ന് മാത്രം ചോദിക്കുന്നു
     if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
         try {
@@ -335,8 +339,8 @@ async function addQuestionToDB() {
 
 // 3. പരീക്ഷാ ഫലങ്ങൾ പരിശോധിക്കുക (Fetch Results)
 async function fetchResults() {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് കാണേണ്ടത്?", "1");
-    if(!sem) return;
+    const sem = selectedSem; // സെമസ്റ്റർ ചോദിക്കുന്നതിന് പകരം നേരിട്ട് എടുക്കുന്നു
+    if(!sem || sem === 'admin') return;
     
     const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
     const body = document.getElementById('results-body');
@@ -346,7 +350,7 @@ async function fetchResults() {
         body.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>";
         return;
     }
-
+    // ... (ബാക്കി നിങ്ങളുടെ കോഡിലുള്ളത് പോലെ തന്നെ)
     body.innerHTML = snap.docs.map(doc => {
         const d = doc.data();
         return `<tr>
@@ -559,5 +563,73 @@ function fetchDoubtsForCurrentSem() {
     alert(`സെമസ്റ്റർ ${selectedSem}-ലെ സംശയങ്ങൾ പരിശോധിക്കുന്നു...`);
     showSection('admin-screen'); // അഡ്മിൻ സ്ക്രീനിലേക്ക് കൊണ്ടുപോകുന്നു
     loadDoubtsForAdmin(); // അവിടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു
+}
+// പുതിയതായി ചേർക്കേണ്ടവ:
+
+// അഡ്മിന് ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
+async function loadAdminQuestions() {
+    const sem = selectedSem;
+    if(!sem || sem === 'admin') {
+        alert("ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം ഇത് ശ്രമിക്കുക!");
+        return;
+    }
+
+    const snap = await db.collection("questions")
+        .where("semester", "==", parseInt(sem))
+        .orderBy("timestamp", "desc")
+        .get();
+
+    const listArea = document.getElementById('tracking-list-content');
+    const modal = document.getElementById('tracking-modal');
+
+    if(snap.empty) {
+        alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.");
+        return;
+    }
+
+    modal.style.display = 'flex';
+    let html = `<h3 style="margin-bottom:15px; color:var(--main);">Semester ${sem} Questions</h3><hr>`;
+    
+    snap.forEach(doc => {
+        const d = doc.data();
+        html += `
+        <div style="border-bottom:1px solid #ddd; padding:15px 0; text-align:left;">
+            <p style="margin:0; font-weight:bold;">Q: ${d.text}</p>
+            <ol style="font-size:0.85rem; color:#555; margin:5px 0 10px 18px;">
+                <li>${d.options[0]}</li><li>${d.options[1]}</li><li>${d.options[2]}</li><li>${d.options[3]}</li>
+            </ol>
+            <p style="font-size:0.8rem; color:green; margin:0;">ശരിയായ ഉത്തരം: Option ${d.correctIndex + 1}</p>
+            <button onclick="deleteSingleQuestion('${doc.id}')" style="background:#ff5252; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:0.7rem; cursor:pointer; margin-top:8px;">Delete Question</button>
+        </div>`;
+    });
+    
+    listArea.innerHTML = html;
+}
+
+// ഒറ്റ ചോദ്യം ഡിലീറ്റ് ചെയ്യാൻ
+async function deleteSingleQuestion(id) {
+    if(confirm("ഈ ചോദ്യം ഒഴിവാക്കട്ടെ?")) {
+        await db.collection("questions").doc(id).delete();
+        alert("ചോദ്യം ഒഴിവാക്കി.");
+        loadAdminQuestions(); 
+    }
+}
+
+// പരീക്ഷ തുടങ്ങാനും നിർത്താനും (Exam Control)
+function openExamManager() {
+    const sem = selectedSem;
+    if(!sem || sem === 'admin') return;
+
+    const action = confirm(`Semester ${sem} പരീക്ഷ ആരംഭിക്കണോ? \n\n(ശ്രദ്ധിക്കുക: പരീക്ഷ തുടങ്ങിയാൽ കുട്ടികൾക്ക് വീഡിയോകൾ കാണാൻ കഴിയില്ല)`);
+    
+    if(action) {
+        db.collection("settings").doc(`examMode_${sem}`).set({ active: true });
+        alert("പരീക്ഷ ലൈവ് ആയി!");
+    } else {
+        if(confirm("പരീക്ഷ അവസാനിപ്പിക്കണോ?")) {
+            db.collection("settings").doc(`examMode_${sem}`).set({ active: false });
+            alert("പരീക്ഷ നിർത്തിവെച്ചു.");
+        }
+    }
 }
 
