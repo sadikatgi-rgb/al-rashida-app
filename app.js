@@ -313,7 +313,7 @@ async function uploadDetailedContent() {
         // ക്ലിയർ ഫീൽഡ്സ്...
     } catch (error) { alert("അപ്‌ലോഡിംഗിൽ തകരാർ!"); }
 }
-
+}
 async function addQuestionToDB() {
     const sem = selectedSem; 
     if(!sem || sem === 'admin') {
