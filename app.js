@@ -292,50 +292,61 @@ async function uploadDetailedContent() {
     }
 }
 // ഫങ്ക്ഷൻ ഇവിടെ അവസാനിക്കുന്നു
-
 async function addQuestionToDB() {
     const sem = selectedSem; 
+    
+    // 1. സെമസ്റ്റർ പരിശോധന
     if(!sem || sem === 'admin') {
-        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
+        alert("ദയവായി ഹോം പേജിൽ നിന്ന് ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
         return;
     }
 
+    // 2. ഇൻപുട്ടുകൾ എടുക്കുന്നു
     const text = document.getElementById('q-text-input').value;
     const options = [
-        document.getElementById('opt0').value, document.getElementById('opt1').value,
-        document.getElementById('opt2').value, document.getElementById('opt3').value
+        document.getElementById('opt0').value, 
+        document.getElementById('opt1').value,
+        document.getElementById('opt2').value, 
+        document.getElementById('opt3').value
     ];
-    const correctIdx = parseInt(document.getElementById('correct-idx-input').value);
+    
+    const idxElem = document.getElementById('correct-idx-input');
+    const cIdx = idxElem ? parseInt(idxElem.value) : 0;
 
-    if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
+    // 3. വാലിഡേഷൻ
+    if(!text || options.some(opt => !opt)) { 
+        alert("ചോദ്യവും നാല് ഓപ്ഷനുകളും നിർബന്ധമാണ്!"); 
+        return; 
+    }
 
-        if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
+    // 4. സേവ് ചെയ്യുന്നു
+    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
         try {
-            // ശരിയായ ഇൻഡക്സ് എടുക്കുന്നു
-            const idxElem = document.getElementById('correct-idx-input');
-            const cIdx = idxElem ? parseInt(idxElem.value) : 0;
-
             await db.collection("questions").add({
                 semester: parseInt(sem),
                 text: text,
                 options: options,
-                correctIndex: cIdx, // ഇവിടെയും മാറ്റം വരുത്തി
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                correctIndex: cIdx,
+                // എറർ ഒഴിവാക്കാൻ കൂടുതൽ സുരക്ഷിതമായ ടൈംസ്റ്റാമ്പ് രീതി
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() 
             });
             
-            alert("ചോദ്യം സേവ് ചെയ്തു!");
+            alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
             
             // ഫോം ക്ലിയർ ചെയ്യുന്നു
             document.getElementById('q-text-input').value = "";
             for(let i=0; i<4; i++) {
-                if(document.getElementById('opt'+i)) document.getElementById('opt'+i).value = "";
+                const optEl = document.getElementById('opt'+i);
+                if(optEl) optEl.value = "";
             }
         } catch (error) { 
-            console.error(error);
-            alert("Error: " + error.message); // ഇത് കൃത്യമായ കാരണം കാണിക്കും
+            console.error("Save Error:", error);
+            // എന്താണ് പ്രശ്നമെന്ന് കൃത്യമായി കാണിക്കും
+            alert("സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല! Error: " + error.message); 
         }
     }
 }
+
 async function fetchResults() {
     const sem = selectedSem;
     if(!sem || sem === 'admin') return;
