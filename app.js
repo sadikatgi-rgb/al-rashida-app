@@ -292,7 +292,6 @@ async function uploadDetailedContent() {
     }
 }
 // ഫങ്ക്ഷൻ ഇവിടെ അവസാനിക്കുന്നു
-
 async function addQuestionToDB() {
     const sem = selectedSem; 
     
