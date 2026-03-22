@@ -356,7 +356,7 @@ async function addQuestionToDB() {
             alert("Error: " + error.message); // ഇത് കൃത്യമായ കാരണം കാണിക്കും
         }
     }
-
+}
 async function fetchResults() {
     const sem = selectedSem;
     if(!sem || sem === 'admin') return;
