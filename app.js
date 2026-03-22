@@ -533,51 +533,85 @@ function fetchDoubtsForCurrentSem() {
 // പുതിയതായി ചേർക്കേണ്ടവ:
 
 // അഡ്മിന് ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
+// 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
 async function loadAdminQuestions() {
     const sem = selectedSem;
     if(!sem || sem === 'admin') {
-        alert("ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം ഇത് ശ്രമിക്കുക!");
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം 'View Questions' ക്ലിക്ക് ചെയ്യുക.");
         return;
     }
-
-    const snap = await db.collection("questions")
-        .where("semester", "==", parseInt(sem))
-        .orderBy("timestamp", "desc")
-        .get();
 
     const listArea = document.getElementById('tracking-list-content');
     const modal = document.getElementById('tracking-modal');
-
-    if(snap.empty) {
-        alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും ചേർത്തിട്ടില്ല.");
-        return;
-    }
-
+    listArea.innerHTML = "<p style='text-align:center;'>ചോദ്യങ്ങൾ ലോഡ് ചെയ്യുന്നു...</p>";
     modal.style.display = 'flex';
-    let html = `<h3 style="margin-bottom:15px; color:var(--main);">Semester ${sem} Questions</h3><hr>`;
-    
-    snap.forEach(doc => {
-        const d = doc.data();
-        html += `
-        <div style="border-bottom:1px solid #ddd; padding:15px 0; text-align:left;">
-            <p style="margin:0; font-weight:bold;">Q: ${d.text}</p>
-            <ol style="font-size:0.85rem; color:#555; margin:5px 0 10px 18px;">
-                <li>${d.options[0]}</li><li>${d.options[1]}</li><li>${d.options[2]}</li><li>${d.options[3]}</li>
-            </ol>
-            <p style="font-size:0.8rem; color:green; margin:0;">ശരിയായ ഉത്തരം: Option ${d.correctIndex + 1}</p>
-            <button onclick="deleteSingleQuestion('${doc.id}')" style="background:#ff5252; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:0.7rem; cursor:pointer; margin-top:8px;">Delete Question</button>
-        </div>`;
-    });
-    
-    listArea.innerHTML = html;
+
+    try {
+        const snap = await db.collection("questions")
+            .where("semester", "==", parseInt(sem))
+            .get();
+
+        if(snap.empty) {
+            listArea.innerHTML = "<p style='text-align:center; color:red;'>ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</p>";
+            return;
+        }
+
+        let html = `<h3 style="color:var(--main); border-bottom:2px solid #ddd; padding-bottom:10px;">Semester ${sem} - All Questions (${snap.size})</h3>`;
+        
+        snap.forEach(doc => {
+            const d = doc.data();
+            const qId = doc.id;
+            html += `
+            <div id="q-card-${qId}" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px; background:#fff; text-align:left; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                <p style="margin:0 0 10px 0; font-weight:bold; font-size:1.1rem;">Q: ${d.text}</p>
+                <ul style="list-style:none; padding:0; font-size:0.9rem; color:#555;">
+                    <li style="${d.correctIndex === 0 ? 'color:green; font-weight:bold;' : ''}">1. ${d.options[0]}</li>
+                    <li style="${d.correctIndex === 1 ? 'color:green; font-weight:bold;' : ''}">2. ${d.options[1]}</li>
+                    <li style="${d.correctIndex === 2 ? 'color:green; font-weight:bold;' : ''}">3. ${d.options[2]}</li>
+                    <li style="${d.correctIndex === 3 ? 'color:green; font-weight:bold;' : ''}">4. ${d.options[3]}</li>
+                </ul>
+                <div style="margin-top:12px; display:flex; gap:10px;">
+                    <button onclick="editQuestionPrompt('${qId}', ${JSON.stringify(d).replace(/"/g, '&quot;')})" style="background:#2196F3; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Edit</button>
+                    <button onclick="deleteSingleQuestion('${qId}')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Delete</button>
+                </div>
+            </div>`;
+        });
+        
+        listArea.innerHTML = html;
+    } catch (error) {
+        alert("ചോദ്യങ്ങൾ കാണിക്കുന്നതിൽ തകരാർ: " + error.message);
+    }
 }
 
-// ഒറ്റ ചോദ്യം ഡിലീറ്റ് ചെയ്യാൻ
+// 2. ചോദ്യം ഡിലീറ്റ് ചെയ്യാൻ
 async function deleteSingleQuestion(id) {
-    if(confirm("ഈ ചോദ്യം ഒഴിവാക്കട്ടെ?")) {
-        await db.collection("questions").doc(id).delete();
-        alert("ചോദ്യം ഒഴിവാക്കി.");
-        loadAdminQuestions(); 
+    if(confirm("ഈ ചോദ്യം സ്ഥിരമായി ഒഴിവാക്കട്ടെ?")) {
+        try {
+            await db.collection("questions").doc(id).delete();
+            alert("ചോദ്യം ഒഴിവാക്കി.");
+            loadAdminQuestions(); // ലിസ്റ്റ് പുതുക്കുന്നു
+        } catch(e) { alert("Error deleting!"); }
+    }
+}
+// 3. ചോദ്യം എഡിറ്റ് ചെയ്യാൻ (കൂടുതൽ സുരക്ഷിതമായ രീതി)
+async function editQuestionPrompt(id) {
+    try {
+        const doc = await db.collection("questions").doc(id).get();
+        if (!doc.exists) return;
+        const oldData = doc.data();
+
+        const newText = prompt("പുതിയ ചോദ്യം നൽകുക:", oldData.text);
+        if (newText === null || newText.trim() === "") return;
+
+        await db.collection("questions").doc(id).update({
+            text: newText,
+            timestamp: new Date().getTime()
+        });
+        
+        alert("ചോദ്യം തിരുത്തി സേവ് ചെയ്തു!");
+        loadAdminQuestions(); // ലിസ്റ്റ് പുതുക്കുന്നു
+    } catch (e) {
+        alert("തിരുത്താൻ കഴിഞ്ഞില്ല: " + e.message);
     }
 }
 
