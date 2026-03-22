@@ -664,12 +664,10 @@ function fetchDoubtsForCurrentSem() {
 
 // അഡ്മിന് ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
 // 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
+// 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്യാനും എഡിറ്റ് ഫോം കാണിക്കാനും
 async function loadAdminQuestions() {
     const sem = selectedSem;
-    if(!sem || sem === 'admin') {
-        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം 'View Questions' ക്ലിക്ക് ചെയ്യുക.");
-        return;
-    }
+    if(!sem || sem === 'admin') return;
 
     const listArea = document.getElementById('tracking-list-content');
     const modal = document.getElementById('tracking-modal');
@@ -677,12 +675,9 @@ async function loadAdminQuestions() {
     modal.style.display = 'flex';
 
     try {
-        const snap = await db.collection("questions")
-            .where("semester", "==", parseInt(sem))
-            .get();
-
+        const snap = await db.collection("questions").where("semester", "==", parseInt(sem)).get();
         if(snap.empty) {
-            listArea.innerHTML = "<p style='text-align:center; color:red;'>ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</p>";
+            listArea.innerHTML = "<p style='text-align:center; color:red;'>ചോദ്യങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</p>";
             return;
         }
 
@@ -692,56 +687,81 @@ async function loadAdminQuestions() {
             const d = doc.data();
             const qId = doc.id;
             html += `
-            <div id="q-card-${qId}" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px; background:#fff; text-align:left; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                <p style="margin:0 0 10px 0; font-weight:bold; font-size:1.1rem;">Q: ${d.text}</p>
-                <ul style="list-style:none; padding:0; font-size:0.9rem; color:#555;">
-                    <li style="${d.correctIndex === 0 ? 'color:green; font-weight:bold;' : ''}">1. ${d.options[0]}</li>
-                    <li style="${d.correctIndex === 1 ? 'color:green; font-weight:bold;' : ''}">2. ${d.options[1]}</li>
-                    <li style="${d.correctIndex === 2 ? 'color:green; font-weight:bold;' : ''}">3. ${d.options[2]}</li>
-                    <li style="${d.correctIndex === 3 ? 'color:green; font-weight:bold;' : ''}">4. ${d.options[3]}</li>
-                </ul>
-                <div style="margin-top:12px; display:flex; gap:10px;">
-                    <button onclick="editQuestionPrompt('${qId}', ${JSON.stringify(d).replace(/"/g, '&quot;')})" style="background:#2196F3; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Edit</button>
-                    <button onclick="deleteSingleQuestion('${qId}')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Delete</button>
+            <div id="q-card-${qId}" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px; background:#fff; text-align:left;">
+                
+                <div id="edit-form-${qId}" style="display:none; background:#f9f9f9; padding:10px; border-radius:5px;">
+                    <textarea id="edit-q-${qId}" style="width:100%; height:50px; margin-bottom:10px;">${d.text}</textarea>
+                    <input type="text" id="edit-opt0-${qId}" value="${d.options[0]}" placeholder="Option 1" style="width:48%; margin:1%;">
+                    <input type="text" id="edit-opt1-${qId}" value="${d.options[1]}" placeholder="Option 2" style="width:48%; margin:1%;">
+                    <input type="text" id="edit-opt2-${qId}" value="${d.options[2]}" placeholder="Option 3" style="width:48%; margin:1%;">
+                    <input type="text" id="edit-opt3-${qId}" value="${d.options[3]}" placeholder="Option 4" style="width:48%; margin:1%;">
+                    <select id="edit-idx-${qId}" style="width:100%; margin:10px 0; padding:5px;">
+                        <option value="0" ${d.correctIndex === 0 ? 'selected' : ''}>Option 1 Correct</option>
+                        <option value="1" ${d.correctIndex === 1 ? 'selected' : ''}>Option 2 Correct</option>
+                        <option value="2" ${d.correctIndex === 2 ? 'selected' : ''}>Option 3 Correct</option>
+                        <option value="3" ${d.correctIndex === 3 ? 'selected' : ''}>Option 4 Correct</option>
+                    </select>
+                    <button onclick="saveUpdatedQuestion('${qId}')" style="background:green; color:white; border:none; padding:8px; width:100%; border-radius:5px; cursor:pointer;">Update Question</button>
+                    <button onclick="toggleEditDiv('${qId}')" style="background:none; color:gray; border:none; width:100%; margin-top:5px; cursor:pointer;">Cancel</button>
+                </div>
+
+                <div id="display-info-${qId}">
+                    <p style="margin:0 0 10px 0; font-weight:bold;">Q: ${d.text}</p>
+                    <ul style="list-style:none; padding:0; font-size:0.9rem;">
+                        <li style="${d.correctIndex === 0 ? 'color:green; font-weight:bold;' : ''}">1. ${d.options[0]}</li>
+                        <li style="${d.correctIndex === 1 ? 'color:green; font-weight:bold;' : ''}">2. ${d.options[1]}</li>
+                        <li style="${d.correctIndex === 2 ? 'color:green; font-weight:bold;' : ''}">3. ${d.options[2]}</li>
+                        <li style="${d.correctIndex === 3 ? 'color:green; font-weight:bold;' : ''}">4. ${d.options[3]}</li>
+                    </ul>
+                    <div style="margin-top:12px; display:flex; gap:10px;">
+                        <button onclick="toggleEditDiv('${qId}')" style="background:#2196F3; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Edit</button>
+                        <button onclick="deleteSingleQuestion('${qId}')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Delete</button>
+                    </div>
                 </div>
             </div>`;
         });
-        
         listArea.innerHTML = html;
-    } catch (error) {
-        alert("ചോദ്യങ്ങൾ കാണിക്കുന്നതിൽ തകരാർ: " + error.message);
-    }
+    } catch (e) { alert("Error: " + e.message); }
 }
 
-// 2. ചോദ്യം ഡിലീറ്റ് ചെയ്യാൻ
-async function deleteSingleQuestion(id) {
-    if(confirm("ഈ ചോദ്യം സ്ഥിരമായി ഒഴിവാക്കട്ടെ?")) {
-        try {
-            await db.collection("questions").doc(id).delete();
-            alert("ചോദ്യം ഒഴിവാക്കി.");
-            loadAdminQuestions(); // ലിസ്റ്റ് പുതുക്കുന്നു
-        } catch(e) { alert("Error deleting!"); }
-    }
+// 2. എഡിറ്റ് ബോക്സ് ടോഗിൾ ചെയ്യാൻ
+function toggleEditDiv(id) {
+    const form = document.getElementById(`edit-form-${id}`);
+    const info = document.getElementById(`display-info-${id}`);
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    info.style.display = info.style.display === 'none' ? 'block' : 'none';
 }
-// 3. ചോദ്യം എഡിറ്റ് ചെയ്യാൻ (കൂടുതൽ സുരക്ഷിതമായ രീതി)
-async function editQuestionPrompt(id) {
+
+// 3. മാറ്റങ്ങൾ സേവ് ചെയ്യാൻ
+async function saveUpdatedQuestion(id) {
+    const text = document.getElementById(`edit-q-${id}`).value;
+    const options = [
+        document.getElementById(`edit-opt0-${id}`).value,
+        document.getElementById(`edit-opt1-${id}`).value,
+        document.getElementById(`edit-opt2-${id}`).value,
+        document.getElementById(`edit-opt3-${id}`).value
+    ];
+    const correctIndex = parseInt(document.getElementById(`edit-idx-${id}`).value);
+
     try {
-        const doc = await db.collection("questions").doc(id).get();
-        if (!doc.exists) return;
-        const oldData = doc.data();
-
-        const newText = prompt("പുതിയ ചോദ്യം നൽകുക:", oldData.text);
-        if (newText === null || newText.trim() === "") return;
-
         await db.collection("questions").doc(id).update({
-            text: newText,
+            text: text,
+            options: options,
+            correctIndex: correctIndex,
             timestamp: new Date().getTime()
         });
-        
-        alert("ചോദ്യം തിരുത്തി സേവ് ചെയ്തു!");
-        loadAdminQuestions(); // ലിസ്റ്റ് പുതുക്കുന്നു
-    } catch (e) {
-        alert("തിരുത്താൻ കഴിഞ്ഞില്ല: " + e.message);
+        alert("വിജയകരമായി പുതുക്കി!");
+        loadAdminQuestions(); 
+    } catch (e) { alert("Error: " + e.message); }
+}
+
+// 4. ചോദ്യം ഒഴിവാക്കാൻ
+async function deleteSingleQuestion(id) {
+    if(confirm("ഈ ചോദ്യം ഒഴിവാക്കട്ടെ?")) {
+        try {
+            await db.collection("questions").doc(id).delete();
+            loadAdminQuestions();
+        } catch(e) { alert("Error deleting!"); }
     }
 }
 
