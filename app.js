@@ -517,6 +517,60 @@ async function startExam() {
 
 function logout() { auth.signOut().then(() => location.reload()); }
 // --- 7. പുതിയ ട്രാക്കിംഗ് & അഡ്മിൻ ഫീച്ചറുകൾ (അവസാന ഭാഗം) ---
+// അഡ്മിന് ആ സെമസ്റ്ററിലെ മുഴുവൻ കുട്ടികളുടെയും അറ്റൻഡൻസ് ലിസ്റ്റ് കാണാൻ
+async function viewSemesterAttendance() {
+    const sem = selectedSem;
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം ഈ ബട്ടൺ ക്ലിക്ക് ചെയ്യുക.");
+        return;
+    }
+
+    const modal = document.getElementById('tracking-modal');
+    const list = document.getElementById('tracking-list-content');
+    
+    if(!modal || !list) { 
+        alert("ട്രാക്കിംഗ് മോഡൽ (HTML Modal) നിങ്ങളുടെ പേജിൽ കണ്ടെത്തിയില്ല!"); 
+        return; 
+    }
+
+    modal.style.display = 'flex'; 
+    list.innerHTML = "<p style='text-align:center;'>വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>";
+
+    try {
+        const snap = await db.collection("activity")
+            .where("semester", "==", sem) // ആ സെമസ്റ്ററിലെ എല്ലാ ആക്ടിവിറ്റിയും എടുക്കുന്നു
+            .orderBy("timestamp", "desc")
+            .get();
+
+        if(snap.empty) {
+            list.innerHTML = "<p style='text-align:center; padding:20px; color:red;'>ഈ സെമസ്റ്ററിൽ കുട്ടികളുടെ വിവരങ്ങൾ ഒന്നും ലഭ്യമല്ല.</p>";
+            return;
+        }
+
+        let html = `<h3 style="color:var(--main); border-bottom:2px solid #ddd; padding-bottom:10px;">Semester ${sem} - Attendance Tracker</h3>`;
+        html += `<table style='width:100%; border-collapse:collapse; font-size:0.85rem; margin-top:15px;'>
+                    <tr style='background:#f1f1f1;'>
+                        <th style='padding:8px; text-align:left; border:1px solid #ddd;'>വിദ്യാർത്ഥി / സ്ഥലം</th>
+                        <th style='padding:8px; text-align:center; border:1px solid #ddd;'>വിഭാഗം</th>
+                    </tr>`;
+        
+        snap.forEach(doc => {
+            const d = doc.data();
+            html += `<tr>
+                        <td style='padding:8px; border:1px solid #ddd;'>
+                            <b>${d.studentName}</b><br>
+                            <small>📍 ${d.studentPlace}</small>
+                        </td>
+                        <td style='padding:8px; text-align:center; border:1px solid #ddd; color:green;'>✅ ${d.type}</td>
+                     </tr>`;
+        });
+        
+        list.innerHTML = html + "</table>";
+    } catch (error) {
+        list.innerHTML = "<p style='color:red;'>Error: " + error.message + "</p>";
+        console.error(error);
+    }
+}
 
 // 1. കുട്ടികൾ ഓരോ ക്ലാസ്സും കാണുന്നത് രേഖപ്പെടുത്താൻ
 async function trackActivity(contentId, type) {
