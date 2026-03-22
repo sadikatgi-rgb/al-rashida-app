@@ -47,50 +47,67 @@ function showSection(id) {
 // സെമസ്റ്റർ കാർഡ് ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function selectSemester(sem) {
     selectedSem = sem;
+    
+    // UI അപ്ഡേറ്റ് - സെമസ്റ്റർ നമ്പർ സ്ക്രീനിൽ കാണിക്കാൻ
     if(document.getElementById('current-sem-display')) {
         document.getElementById('current-sem-display').innerText = sem;
     }
     if(document.getElementById('current-upload-sem')) {
         document.getElementById('current-upload-sem').innerText = sem;
     }
-    // 1. അഡ്മിൻ ആണെങ്കിൽ ലോഗിൻ ഫോം ഇല്ലാതെ നേരിട്ട് കാണിക്കുന്നു
+
     const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
+
+    // 1. അഡ്മിൻ ആണെങ്കിൽ
     if (isAdmin) {
         if (sem === 'admin') {
             showSection('admin-screen');
             loadDoubtsForAdmin();
         } else {
             showSection('student-screen');
+            // അഡ്മിൻ ആണെന്ന് കാണിക്കാൻ ബാഡ്ജ് ഉണ്ടെങ്കിൽ അത് കാണിക്കുക
+            const badge = document.getElementById('admin-badge');
+            if(badge) badge.style.display = 'block';
+            
             loadContents();
         }
         return;
     }
 
-    // 2. സാധാരണ വിദ്യാർത്ഥിക്ക് നേരത്തെ ലോഗിൻ ചെയ്തതാണോ എന്ന് നോക്കുന്നു
+    // 2. സാധാരണ വിദ്യാർത്ഥി ലോഗിൻ ചെയ്തിട്ടുണ്ടോ എന്ന് നോക്കുന്നു
     const isLogged = localStorage.getItem(`isLoggedIn_S${sem}`);
     if (isLogged === "true") {
         currentStudentName = localStorage.getItem(`studentName`) || "";
         currentStudentPlace = localStorage.getItem(`studentPlace`) || "";
+        
         showSection('student-screen');
-        loadContents();
+        
+        // ഇത് പ്രധാനമാണ്: ക്ലാസ്സ് ലിസ്റ്റ് ലോഡ് ചെയ്യാനും പരീക്ഷ ഉണ്ടോ എന്ന് നോക്കാനും
+        initStudentApp(); 
     } else {
-        // ലോഗിൻ ചെയ്തിട്ടില്ലെങ്കിൽ മാത്രം ഫോം കാണിക്കുന്നു
+        // ലോഗിൻ ചെയ്തിട്ടില്ലെങ്കിൽ ലോഗിൻ സ്ക്രീൻ കാണിക്കുന്നു
         const loginTitle = document.getElementById('login-title');
         if (loginTitle) loginTitle.innerText = `Semester ${sem} Login`;
+        
         const studentInputs = document.getElementById('student-inputs');
         if (studentInputs) studentInputs.style.display = 'block'; 
+        
         showSection('login-screen');
     }
 }
 
-// സൈഡ്ബാറിലെ അഡ്മിൻ ലോഗിൻ ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function showAdminLogin() {
     selectedSem = 'admin';
     const loginTitle = document.getElementById('login-title');
     if (loginTitle) loginTitle.innerText = `Admin Login`;
     
     const studentInputs = document.getElementById('student-inputs');
-    if (studentInputs) studentInputs.style.display = 'none'; // അഡ്മിന് പേരും സ്ഥലവും വേണ്ട
+    if (studentInputs) studentInputs.style.display = 'none'; 
+
+    // അധികമായി ചേർക്കാവുന്നവ (ഓപ്ഷണൽ):
+    // അഡ്മിൻ ലോഗിൻ ക്ലിക്ക് ചെയ്യുമ്പോൾ പഴയ വിവരങ്ങൾ ഉണ്ടെങ്കിൽ അത് മായ്ച്ചു കളയാൻ
+    if(document.getElementById('email')) document.getElementById('email').value = "";
+    if(document.getElementById('password')) document.getElementById('password').value = "";
     
     showSection('login-screen');
     closeNav();
@@ -276,40 +293,49 @@ async function uploadDetailedContent() {
 // 2. ചോദ്യങ്ങൾ അപ്‌ലോഡ് ചെയ്യുക
 async function addQuestionToDB() {
     const sem = selectedSem; 
+    
+    // 1. സെമസ്റ്റർ ഉണ്ടോ എന്ന് പരിശോധിക്കുന്നു
     if(!sem || sem === 'admin') {
-        alert("സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം ചോദ്യം ചേർക്കുക.");
         return;
     }
 
-    const text = document.getElementById('q-text-input').value;
-    const options = [
-        document.getElementById('opt0').value, 
-        document.getElementById('opt1').value,
-        document.getElementById('opt2').value, 
-        document.getElementById('opt3').value
-    ];
+    // ഇൻപുട്ട് എലമെന്റുകൾ എടുക്കുന്നു
+    const qInput = document.getElementById('q-text-input');
+    const opt0 = document.getElementById('opt0');
+    const opt1 = document.getElementById('opt1');
+    const opt2 = document.getElementById('opt2');
+    const opt3 = document.getElementById('opt3');
+    const idxElem = document.getElementById('correct-idx-input');
 
-    if(!text || options.some(opt => !opt)) { 
-        alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); 
+    // 2. വാലിഡേഷൻ: ചോദ്യവും ഓപ്ഷനുകളും ഉണ്ടോ എന്ന് നോക്കുന്നു
+    if(!qInput.value.trim() || !opt0.value.trim() || !opt1.value.trim()) { 
+        alert("ചോദ്യവും ചുരുങ്ങിയത് രണ്ട് ഓപ്ഷനുകളും നിർബന്ധമായും നൽകണം!"); 
         return; 
     }
 
     try {
-        const idxElem = document.getElementById('correct-idx-input');
-        const cIdx = idxElem ? parseInt(idxElem.value) : 0;
-
+        // 3. ഫയർബേസിലേക്ക് ഡാറ്റ അയക്കുന്നു
         await db.collection("questions").add({
             semester: parseInt(sem),
-            text: text,
-            options: options,
-            correctIndex: cIdx,
+            text: qInput.value,
+            options: [opt0.value, opt1.value, opt2.value, opt3.value],
+            correctIndex: parseInt(idxElem.value),
             timestamp: new Date().getTime() 
         });
-        alert("ചോദ്യം സേവ് ചെയ്തു!");
+
+        alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
         
-        // ഫോം ക്ലിയർ ചെയ്യാൻ
-        document.getElementById('q-text-input').value = "";
+        // 4. ഫോം പൂർണ്ണമായും ക്ലിയർ ചെയ്യുന്നു (ഇതാണ് നിങ്ങൾ ചോദിച്ച മാറ്റം)
+        qInput.value = "";
+        opt0.value = "";
+        opt1.value = "";
+        opt2.value = "";
+        opt3.value = "";
+        idxElem.selectedIndex = 0; // ഡ്രോപ്പ് ഡൗൺ ആദ്യത്തെ ഓപ്ഷനിലേക്ക് മാറ്റുന്നു
+
     } catch (error) { 
+        console.error("Error adding question:", error);
         alert("Error: " + error.message); 
     }
 }
