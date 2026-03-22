@@ -341,29 +341,79 @@ async function addQuestionToDB() {
 }
 
 async function fetchResults() {
-    const sem = selectedSem;
-    if(!sem || sem === 'admin') return;
-    const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
+    // ഗ്ലോബൽ വേരിയബിളായ selectedSem നേരിട്ട് ഉപയോഗിക്കുന്നു
+    const sem = selectedSem; 
+    
+    // സെമസ്റ്റർ തിരഞ്ഞെടുത്തിട്ടില്ലെങ്കിൽ ഒന്നും ചെയ്യേണ്ടതില്ല
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
+        return;
+    }
+
     const body = document.getElementById('results-body');
     if(!body) return;
-    if(snap.empty) { body.innerHTML = "<tr><td colspan='3'>റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>"; return; }
 
-    body.innerHTML = snap.docs.map(doc => {
-        const d = doc.data();
-        return `<tr>
-            <td style="padding:10px;"><b>${d.studentName}</b><br><small>📍 ${d.studentPlace || ""}</small></td>
-            <td style="text-align:center;"><b>${d.score}</b></td>
-            <td style="text-align:center;"><button onclick="deleteSingleResult('${doc.id}')">Del</button></td>
-        </tr>`;
-    }).join('');
+    // ഡാറ്റ വരുന്നത് വരെ ലോഡിംഗ് കാണിക്കാൻ
+    body.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>വിവരങ്ങൾ ശേഖരിക്കുന്നു...</td></tr>";
+
+    try {
+        // നിലവിലെ സെമസ്റ്ററിലെ റിസൾട്ടുകൾ മാത്രം എടുക്കുന്നു
+        const snap = await db.collection("results")
+            .where("semester", "==", sem)
+            .orderBy("timestamp", "desc")
+            .get();
+
+        if(snap.empty) { 
+            body.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>ഈ സെമസ്റ്ററിൽ റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>"; 
+            return; 
+        }
+
+        // ടേബിൾ ബോഡിയിലേക്ക് ഡാറ്റ പ്രിന്റ് ചെയ്യുന്നു
+        body.innerHTML = snap.docs.map(doc => {
+            const d = doc.data();
+            return `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding:10px;">
+                    <b style="color:#2c3e50;">${d.studentName}</b><br>
+                    <small style="color:#7f8c8d;">📍 ${d.studentPlace || "Unknown"}</small>
+                </td>
+                <td style="text-align:center; font-weight:bold; color:#27ae60; font-size:1.1rem;">
+                    ${d.score}
+                </td>
+                <td style="text-align:center;">
+                    <button onclick="deleteSingleResult('${doc.id}')" 
+                        style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:5px; cursor:pointer; font-size:0.8rem;">
+                        Delete
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error fetching results:", error);
+        body.innerHTML = "<tr><td colspan='3' style='color:red; text-align:center; padding:20px;'>റിസൾട്ട് ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</td></tr>";
+    }
 }
 
 // 4. റിസൾട്ട് പബ്ലിഷ്/ഹൈഡ് ചെയ്യുക
 function toggleResultStatus(status) {
-    const sem = prompt("ഏത് സെമസ്റ്ററിലെ റിസൾട്ട് ആണ് പബ്ലിഷ്/ഹൈഡ് ചെയ്യേണ്ടത്? (1,2,3,4,5)");
-    if(!sem) return;
+    // വീണ്ടും prompt ചോദിക്കാതെ നിലവിലെ സെമസ്റ്റർ (selectedSem) എടുക്കുന്നു
+    const sem = selectedSem; 
+    
+    if(!sem || sem === 'admin') {
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം റിസൾട്ട് കൺട്രോൾ ചെയ്യുക.");
+        return;
+    }
+
+    // ഫയർബേസിൽ ആ സെമസ്റ്ററിലെ റിസൾട്ട് മോഡ് മാറ്റുന്നു
     db.collection("settings").doc(`resultMode_${sem}`).set({ active: status })
-    .then(() => alert(`Semester ${sem} റിസൾട്ട് മോഡ് മാറ്റി.`));
+    .then(() => {
+        const msg = status ? "പബ്ലിഷ് ചെയ്തു" : "ഹൈഡ് ചെയ്തു";
+        alert(`Semester ${sem} റിസൾട്ട് ഇപ്പോൾ ${msg}.`);
+    })
+    .catch(error => {
+        alert("Error: " + error.message);
+    });
 }
 
 // 5. വിദ്യാർത്ഥികളുടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുക (Doubt Management)
