@@ -279,13 +279,40 @@ async function uploadDetailedContent() {
     }
 }
 
-// 2. ചോദ്യങ്ങൾ സേവ് ചെയ്യുക (Add Question)
-// പരിഷ്കരിച്ച ചോദ്യം ചേർക്കുന്ന ഫങ്ക്ഷൻ
-async function addQuestionToDB() {
-    const sem = selectedSem; // ഓട്ടോമാറ്റിക്കായി സെമസ്റ്റർ എടുക്കുന്നു
+// --- 5. പരിഷ്കരിച്ച അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ತಿരുത്തിയത്) ---
+
+async function uploadDetailedContent() {
+    const sem = document.getElementById('upload-sem-select').value;
+    const subject = document.getElementById('content-subject').value;
+    const chapter = document.getElementById('content-chapter').value;
+    const part = document.getElementById('content-part').value;
+    const customTime = document.getElementById('content-datetime').value;
     
+    const video = document.getElementById('link-video').value;
+    const audio = document.getElementById('link-audio').value;
+    const pdf = document.getElementById('link-pdf').value;
+
+    if(!subject || !chapter) { alert("വിഷയവും പാഠത്തിന്റെ പേരും നിർബന്ധമാണ്!"); return; }
+
+    try {
+        await db.collection("contents").add({
+            semester: parseInt(sem),
+            subject: subject,
+            chapter: chapter,
+            part: part || "",
+            displayDate: customTime || new Date().toISOString(),
+            links: { video: video || "", audio: audio || "", pdf: pdf || "" },
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!`);
+        // ക്ലിയർ ഫീൽഡ്സ്...
+    } catch (error) { alert("അപ്‌ലോഡിംഗിൽ തകരാർ!"); }
+}
+
+async function addQuestionToDB() {
+    const sem = selectedSem; 
     if(!sem || sem === 'admin') {
-        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത് അതിനുള്ളിലെ അഡ്മിൻ പാനലിലൂടെ ചോദ്യം ചേർക്കുക.");
+        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
         return;
     }
 
@@ -299,69 +326,36 @@ async function addQuestionToDB() {
     if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
 
     if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
-        await db.collection("questions").add({
-            semester: parseInt(sem),
-            text, options, correctIndex: correctIdx, 
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("ചോദ്യം സേവ് ചെയ്തു!");
-        document.getElementById('q-text-input').value = "";
-        document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
-        document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
-    }
-}
-    // സേവ് ചെയ്യണോ എന്ന് മാത്രം ചോദിക്കുന്നു
-    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
         try {
             await db.collection("questions").add({
                 semester: parseInt(sem),
                 text: text,
                 options: options,
                 correctIndex: correctIdx,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // കൃത്യമായ സമയം ലഭിക്കാൻ
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
-            
-            alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
-            
-            // ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുന്നു
+            alert("ചോദ്യം സേവ് ചെയ്തു!");
             document.getElementById('q-text-input').value = "";
-            document.getElementById('opt0').value = ""; 
-            document.getElementById('opt1').value = "";
-            document.getElementById('opt2').value = ""; 
-            document.getElementById('opt3').value = "";
-            
-        } catch (error) {
-            console.error("Error adding question:", error);
-            alert("ക്ഷമിക്കണം, ചോദ്യം സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.");
-        }
+            document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
+            document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
+        } catch (error) { alert("സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല!"); }
     }
 }
 
-// 3. പരീക്ഷാ ഫലങ്ങൾ പരിശോധിക്കുക (Fetch Results)
 async function fetchResults() {
-    const sem = selectedSem; // സെമസ്റ്റർ ചോദിക്കുന്നതിന് പകരം നേരിട്ട് എടുക്കുന്നു
+    const sem = selectedSem;
     if(!sem || sem === 'admin') return;
-    
     const snap = await db.collection("results").where("semester", "==", sem).orderBy("timestamp", "desc").get();
     const body = document.getElementById('results-body');
     if(!body) return;
+    if(snap.empty) { body.innerHTML = "<tr><td colspan='3'>റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>"; return; }
 
-    if(snap.empty) {
-        body.innerHTML = "<tr><td colspan='3' style='text-align:center; padding:20px;'>റിസൾട്ടുകൾ ലഭ്യമല്ല.</td></tr>";
-        return;
-    }
-    // ... (ബാക്കി നിങ്ങളുടെ കോഡിലുള്ളത് പോലെ തന്നെ)
     body.innerHTML = snap.docs.map(doc => {
         const d = doc.data();
         return `<tr>
-            <td style="padding:10px; border-bottom:1px solid #eee;">
-                <b>${d.studentName}</b><br>
-                <small style="color:#666;">📍 ${d.studentPlace || ""}</small>
-            </td>
-            <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;"><b>${d.score}</b></td>
-            <td style="padding:10px; border-bottom:1px solid #eee; text-align:center;">
-                <button onclick="deleteSingleResult('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 8px; border-radius:4px; cursor:pointer;">Del</button>
-            </td>
+            <td style="padding:10px;"><b>${d.studentName}</b><br><small>📍 ${d.studentPlace || ""}</small></td>
+            <td style="text-align:center;"><b>${d.score}</b></td>
+            <td style="text-align:center;"><button onclick="deleteSingleResult('${doc.id}')">Del</button></td>
         </tr>`;
     }).join('');
 }
