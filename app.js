@@ -330,22 +330,32 @@ async function addQuestionToDB() {
 
     if(!text || options.some(opt => !opt)) { alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); return; }
 
-    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
+        if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
         try {
+            // ശരിയായ ഇൻഡക്സ് എടുക്കുന്നു
+            const idxElem = document.getElementById('correct-idx-input');
+            const cIdx = idxElem ? parseInt(idxElem.value) : 0;
+
             await db.collection("questions").add({
                 semester: parseInt(sem),
                 text: text,
                 options: options,
-                correctIndex: correctIdx,
+                correctIndex: cIdx, // ഇവിടെയും മാറ്റം വരുത്തി
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
             alert("ചോദ്യം സേവ് ചെയ്തു!");
+            
+            // ഫോം ക്ലിയർ ചെയ്യുന്നു
             document.getElementById('q-text-input').value = "";
-            document.getElementById('opt0').value = ""; document.getElementById('opt1').value = "";
-            document.getElementById('opt2').value = ""; document.getElementById('opt3').value = "";
-        } catch (error) { alert("സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല!"); }
+            for(let i=0; i<4; i++) {
+                if(document.getElementById('opt'+i)) document.getElementById('opt'+i).value = "";
+            }
+        } catch (error) { 
+            console.error(error);
+            alert("Error: " + error.message); // ഇത് കൃത്യമായ കാരണം കാണിക്കും
+        }
     }
-}
 
 async function fetchResults() {
     const sem = selectedSem;
