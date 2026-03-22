@@ -47,7 +47,12 @@ function showSection(id) {
 // സെമസ്റ്റർ കാർഡ് ക്ലിക്ക് ചെയ്യുമ്പോൾ
 function selectSemester(sem) {
     selectedSem = sem;
-
+    if(document.getElementById('current-sem-display')) {
+        document.getElementById('current-sem-display').innerText = sem;
+    }
+    if(document.getElementById('current-upload-sem')) {
+        document.getElementById('current-upload-sem').innerText = sem;
+    }
     // 1. അഡ്മിൻ ആണെങ്കിൽ ലോഗിൻ ഫോം ഇല്ലാതെ നേരിട്ട് കാണിക്കുന്നു
     const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
     if (isAdmin) {
