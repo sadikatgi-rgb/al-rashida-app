@@ -235,11 +235,9 @@ function loadContents() {
 }
 // --- 5. അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
 
-// ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുന്ന ഫങ്ക്ഷൻ
+// 1. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക
 async function uploadDetailedContent() {
-    // തിരഞ്ഞെടുത്ത സെമസ്റ്റർ എടുക്കുന്നു
     const sem = selectedSem; 
-    
     const subject = document.getElementById('content-subject').value;
     const chapter = document.getElementById('content-chapter').value;
     const part = document.getElementById('content-part').value;
@@ -249,15 +247,9 @@ async function uploadDetailedContent() {
     const audio = document.getElementById('link-audio').value;
     const pdf = document.getElementById('link-pdf').value;
 
-    // വാലിഡേഷൻ
     if(!subject || !chapter) { 
         alert("വിഷയവും പാഠത്തിന്റെ പേരും നിർബന്ധമാണ്!"); 
         return; 
-    }
-
-    if(!sem || sem === 'admin') {
-        alert("ദയവായി ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുത്ത ശേഷം അപ്‌ലോഡ് ചെയ്യുക.");
-        return;
     }
 
     try {
@@ -267,41 +259,28 @@ async function uploadDetailedContent() {
             chapter: chapter,
             part: part || "",
             displayDate: customTime || new Date().toISOString(),
-            links: { 
-                video: video || "", 
-                audio: audio || "", 
-                pdf: pdf || "" 
-            },
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            links: { video: video || "", audio: audio || "", pdf: pdf || "" },
+            timestamp: new Date().getTime() 
         });
-
-        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് വിജയകരമായി അപ്‌ലോഡ് ചെയ്തു!`);
+        alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!`);
         
-        // ഫോം ക്ലിയർ ചെയ്യുന്നു
+        // ഫോം ക്ലിയർ ചെയ്യാൻ
         document.getElementById('content-subject').value = "";
         document.getElementById('content-chapter').value = "";
-        document.getElementById('content-part').value = "";
-        document.getElementById('content-datetime').value = "";
-        document.getElementById('link-video').value = "";
-        document.getElementById('link-audio').value = "";
-        document.getElementById('link-pdf').value = "";
-        
-    } catch (error) {
-        console.error("Upload Error:", error);
-        alert("അപ്‌ലോഡിംഗിൽ തകരാർ സംഭവിച്ചു: " + error.message);
+    } catch (error) { 
+        console.error(error);
+        alert("അപ്‌ലോഡിംഗിൽ തകരാർ: " + error.message); 
     }
 }
-// ഫങ്ക്ഷൻ ഇവിടെ അവസാനിക്കുന്നു
+
+// 2. ചോദ്യങ്ങൾ അപ്‌ലോഡ് ചെയ്യുക
 async function addQuestionToDB() {
     const sem = selectedSem; 
-    
-    // 1. സെമസ്റ്റർ പരിശോധന
     if(!sem || sem === 'admin') {
-        alert("ദയവായി ഹോം പേജിൽ നിന്ന് ഒരു സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
+        alert("സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക.");
         return;
     }
 
-    // 2. ഇൻപുട്ടുകൾ എടുക്കുന്നു
     const text = document.getElementById('q-text-input').value;
     const options = [
         document.getElementById('opt0').value, 
@@ -309,41 +288,29 @@ async function addQuestionToDB() {
         document.getElementById('opt2').value, 
         document.getElementById('opt3').value
     ];
-    
-    const idxElem = document.getElementById('correct-idx-input');
-    const cIdx = idxElem ? parseInt(idxElem.value) : 0;
 
-    // 3. വാലിഡേഷൻ
     if(!text || options.some(opt => !opt)) { 
-        alert("ചോദ്യവും നാല് ഓപ്ഷനുകളും നിർബന്ധമാണ്!"); 
+        alert("വിവരങ്ങൾ പൂർണ്ണമല്ല!"); 
         return; 
     }
 
-    // 4. സേവ് ചെയ്യുന്നു
-    if(confirm(`ഈ ചോദ്യം Semester ${sem}-ലേക്ക് സേവ് ചെയ്യട്ടെ?`)) {
-        try {
-            await db.collection("questions").add({
-                semester: parseInt(sem),
-                text: text,
-                options: options,
-                correctIndex: cIdx,
-                // എറർ ഒഴിവാക്കാൻ കൂടുതൽ സുരക്ഷിതമായ ടൈംസ്റ്റാമ്പ് രീതി
-                timestamp: new Date().getTime() 
-            });
-            
-            alert("ചോദ്യം വിജയകരമായി സേവ് ചെയ്തു!");
-            
-            // ഫോം ക്ലിയർ ചെയ്യുന്നു
-            document.getElementById('q-text-input').value = "";
-            for(let i=0; i<4; i++) {
-                const optEl = document.getElementById('opt'+i);
-                if(optEl) optEl.value = "";
-            }
-        } catch (error) { 
-            console.error("Save Error:", error);
-            // എന്താണ് പ്രശ്നമെന്ന് കൃത്യമായി കാണിക്കും
-            alert("സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല! Error: " + error.message); 
-        }
+    try {
+        const idxElem = document.getElementById('correct-idx-input');
+        const cIdx = idxElem ? parseInt(idxElem.value) : 0;
+
+        await db.collection("questions").add({
+            semester: parseInt(sem),
+            text: text,
+            options: options,
+            correctIndex: cIdx,
+            timestamp: new Date().getTime() 
+        });
+        alert("ചോദ്യം സേവ് ചെയ്തു!");
+        
+        // ഫോം ക്ലിയർ ചെയ്യാൻ
+        document.getElementById('q-text-input').value = "";
+    } catch (error) { 
+        alert("Error: " + error.message); 
     }
 }
 
