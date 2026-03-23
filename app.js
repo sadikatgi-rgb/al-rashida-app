@@ -534,16 +534,30 @@ async function deleteSingleResult(id) {
 
 // --- 6. EXAM LOGIC ---
 async function startExam() {
-    const snap = await db.collection("questions")
-    .where("semester", "==", parseInt(selectedSem))
-    .orderBy("timestamp").get();
-    
-    questions = snap.docs.map(d => d.data());
-    if(questions.length > 0) { 
-        currentQIndex = 0; score = 0; 
-        alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
-    } else {
-        alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
+    try {
+        const snap = await db.collection("questions")
+            .where("semester", "==", parseInt(selectedSem))
+            .orderBy("timestamp").get();
+        
+        questions = snap.docs.map(d => d.data());
+
+        if(questions.length > 0) { 
+            currentQIndex = 0; 
+            score = 0; 
+            alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
+            
+            // 1. എക്സാം സെക്ഷൻ കാണിക്കുക
+            showSection('quiz-area'); 
+
+            // 2. ആദ്യത്തെ ചോദ്യം സ്ക്രീനിൽ കാണിക്കാൻ ഈ ഫങ്ക്ഷൻ വിളിക്കുക
+            renderQuestion(); 
+            
+        } else {
+            alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
+        }
+    } catch (e) {
+        console.error("Exam Error:", e);
+        alert("പരീക്ഷ ലോഡ് ചെയ്യുന്നതിൽ പിശക് സംഭവിച്ചു.");
     }
 }
 
