@@ -117,9 +117,6 @@ function showAdminLogin() {
 }
 
 // --- 3. LOGIN FUNCTION ---
-// --- ഗ്ലോബൽ വേരിയബിളുകൾ (ഫങ്ക്ഷന് പുറത്ത് ഉണ്ടെന്ന് ഉറപ്പുവരുത്തുക) ---
-let currentStudentName = "";
-let currentStudentPlace = "";
 
 async function login() {
     const nameInput = document.getElementById('student-name');
@@ -564,7 +561,6 @@ async function startExam() {
     }
 }
 
-function logout() { auth.signOut().then(() => location.reload()); }
 // --- 7. പുതിയ ട്രാക്കിംഗ് & അഡ്മിൻ ഫീച്ചറുകൾ
 // അഡ്മിന് ആ സെമസ്റ്ററിലെ മുഴുവൻ കുട്ടികളുടെയും അറ്റൻഡൻസ് ലിസ്റ്റ് കാണാൻ
 async function viewSemesterAttendance() {
