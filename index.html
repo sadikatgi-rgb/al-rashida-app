@@ -22,14 +22,18 @@
     </div>
 
     <div id="app">
-        <header>
-            <button class="openbtn" onclick="openNav()">&#9776;</button>
-            <div class="logo-area">
-                <h1>AL RASHIDA ONLINE DARS</h1>
-            </div>
-            <button id="logout-btn" onclick="logout()" style="display:none; background: #c62828; color:white; border:none; padding:5px 10px; border-radius:5px;">Logout</button>
-        </header>
-
+        <header style="display: flex; align-items: center; justify-content: space-between; padding: 10px 15px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <button class="openbtn" onclick="openNav()">&#9776;</button>
+        <div class="logo-area">
+            <h1 style="font-size: 1.2rem; margin: 0;">AL RASHIDA ONLINE DARS</h1>
+        </div>
+    </div>
+    
+    <button id="logout-btn" onclick="logout()" style="display:none; background: #c62828; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:0.8rem;">
+        Logout 🚪
+    </button>
+</header>
         <div id="home-screen" class="container">
             <h2 style="text-align:center; color:#004d40; margin-bottom:20px;">സെമസ്റ്റർ തിരഞ്ഞെടുക്കുക</h2>
             <div class="semester-grid">
@@ -79,7 +83,7 @@
             <div class="card" style="text-align: center;">
                 <h2 style="color: #004d40;">ആപ്പിനെക്കുറിച്ച്</h2>
                 <div style="text-align: left; line-height: 1.8; margin-bottom: 20px;">
-                    <p>ഉസ്താദ് മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി വനിതകൾക്കായി നടത്തുന്ന ഓൺലൈൻ ദർസ് ആപ്പ്.</p>
+                    <p>ഉസ്താദ് മുഹമ്മദ് അസ്‌ലം സഖാഫി അൽ കാമിലി അറ്റത്തങ്ങടി വനിതകൾക്കായി നടത്തുന്ന ഓൺലൈൻ ദർസ് ആപ്പ്.</p>
                     <p>ക്ലാസുകൾ കേൾക്കാനും, പഠിക്കാനും, സംശയങ്ങൾ ചോദിക്കാനും ഈ ആപ്പ് നിങ്ങളെ സഹായിക്കുന്നു. വർഷത്തിൽ ഒരിക്കൽ ഈ ആപ്പിലൂടെ എക്സാം ഉണ്ടായിരിക്കും.</p>
                 </div>
                 <button onclick="showSection('home-screen')" class="primary-btn">തിരികെ</button>
@@ -176,13 +180,21 @@
         <button onclick="showSection('home-screen')" class="back-home-btn" style="background: #455a64; color: white; margin-top: 25px;">
             ⬅️ തിരികെ ഹോം പേജിലേക്ക്
         </button>
-    </div> </div> <div id="student-screen" class="container" style="display:none;">
+    </div> 
+    </div> 
+    <div id="student-screen" class="container" style="display:none;">
+    <div id="student-screen" class="container" style="display:none;">
+    <div style="text-align: right; margin-bottom: 10px;">
+        <button onclick="logout()" style="background:none; border:none; color:#c62828; font-weight:bold; cursor:pointer; font-size:0.9rem;">
+            🚪 Logout
+        </button>
+    </div>
+
     <div id="class-list">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 style="color: var(--main); margin: 0;">നിങ്ങളുടെ ക്ലാസുകൾ</h2>
             <span id="admin-badge" style="display:none; background: #ffd54f; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; color: #333;">ADMIN MODE</span>
         </div>
-
         <div id="admin-semester-tools" style="display:none; background: #f1f8e9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #4caf50;">
             <p style="font-weight: bold; color: #2e7d32; margin-bottom: 12px; font-size: 0.85rem;">
                 ⚙️ Admin Control: Semester <span id="current-sem-display"></span>
