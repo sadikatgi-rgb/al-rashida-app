@@ -184,18 +184,18 @@
     </div> 
     </div> 
     <div id="student-screen" class="container" style="display:none;">
-    <div id="student-screen" class="container" style="display:none;">
     <div style="text-align: right; margin-bottom: 10px;">
         <button onclick="logout()" style="background:none; border:none; color:#c62828; font-weight:bold; cursor:pointer; font-size:0.9rem;">
             🚪 Logout
         </button>
     </div>
 
-    <div id="class-list">
+    <div id="class-list-container">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
             <h2 style="color: var(--main); margin: 0;">നിങ്ങളുടെ ക്ലാസുകൾ</h2>
             <span id="admin-badge" style="display:none; background: #ffd54f; padding: 5px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; color: #333;">ADMIN MODE</span>
         </div>
+
         <div id="admin-semester-tools" style="display:none; background: #f1f8e9; padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 2px dashed #4caf50;">
             <p style="font-weight: bold; color: #2e7d32; margin-bottom: 12px; font-size: 0.85rem;">
                 ⚙️ Admin Control: Semester <span id="current-sem-display"></span>
@@ -208,28 +208,31 @@
             </div>
         </div>
 
-                <div id="content-display"></div>
+        <div id="content-display"></div>
+        
         <button onclick="showSection('home-screen')" class="back-home-btn" style="margin-top:20px;">തിരികെ ഹോം പേജിലേക്ക്</button>
-    </div> <div id="exam-box" style="display:none; text-align: center;">
-        <div class="card" style="border-top: 5px solid var(--danger);">
-            <h2 style="color: var(--danger);">Exam Ongoing...</h2>
-            <div id="quiz-area"></div>
-        </div>
     </div>
-</div> </div> <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+</div>
+<div id="quiz-area" class="container" style="display:none;">
+    <div class="card" style="border-top: 5px solid var(--danger); text-align: center;">
+        <h2 style="color: var(--danger);">Exam Ongoing...</h2>
+        <div id="question-container"></div> 
+    </div>
+</div>
+
+</div> <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 <script src="app.js"></script>
-    <div id="tracking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; padding: 10px;">
+
+<div id="tracking-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center; padding: 10px;">
     <div class="card" style="width:100%; max-width:500px; max-height:85vh; overflow-y:auto; background:white; padding:20px; border-radius:15px; position:relative; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
         <button onclick="document.getElementById('tracking-modal').style.display='none'" style="position:absolute; right:15px; top:15px; background:#c62828; color:white; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; font-weight:bold;">X</button>
-        
-        <div id="tracking-list-content" style="margin-top:30px;">
-            </div>
-        
+        <div id="tracking-list-content" style="margin-top:30px;"></div>
         <button onclick="document.getElementById('tracking-modal').style.display='none'" class="primary-btn" style="margin-top:20px; background:#455a64;">Close</button>
     </div>
 </div>
+
 </body>
 </html>
 
