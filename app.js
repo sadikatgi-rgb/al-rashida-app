@@ -17,6 +17,9 @@ let currentQIndex = 0;
 let questions = [];
 let score = 0;
 let selectedSem = null;
+// ആപ്പ് തുറക്കുമ്പോൾ പഴയ പേരും സ്ഥലവും ഉണ്ടെങ്കിൽ അത് എടുക്കുന്നു
+let currentStudentName = localStorage.getItem('studentName') || "";
+let currentStudentPlace = localStorage.getItem('studentPlace') || "";
 
 // --- 2. SIDEBAR & NAVIGATION ---
 function openNav() { 
@@ -857,3 +860,69 @@ auth.onAuthStateChanged(user => {
         if (logoutSidebar) logoutSidebar.style.display = 'none';
     }
 });
+// ചോദ്യങ്ങൾ സ്ക്രീനിൽ ഓരോന്നായി കാണിക്കാൻ
+function renderQuestion() {
+    const container = document.getElementById('question-container');
+    if (!container) return;
+
+    // എല്ലാ ചോദ്യങ്ങളും കഴിഞ്ഞോ എന്ന് നോക്കുന്നു
+    if (currentQIndex >= questions.length) {
+        finishExam();
+        return;
+    }
+
+    const q = questions[currentQIndex];
+    
+    let html = `
+        <div class="question-box" style="text-align:left; padding:15px;">
+            <p style="font-weight:bold; font-size:1.1rem; margin-bottom:15px;">
+                ${currentQIndex + 1}. ${q.text}
+            </p>
+            <div class="options-grid" style="display:grid; gap:10px;">
+    `;
+
+    q.options.forEach((opt, idx) => {
+        if(opt) { // ഓപ്ഷൻ ഉണ്ടെങ്കിൽ മാത്രം ബട്ടൺ കാണിക്കുക
+            html += `
+                <button onclick="checkAnswer(${idx})" 
+                    style="padding:12px; border:1px solid #ddd; border-radius:8px; background:white; cursor:pointer; text-align:left; font-size:1rem;">
+                    ${opt}
+                </button>`;
+        }
+    });
+
+    html += `</div></div>`;
+    container.innerHTML = html;
+}
+
+// ഉത്തരം ശരിയാണോ എന്ന് നോക്കാൻ
+function checkAnswer(selectedIdx) {
+    const correct = questions[currentQIndex].correctIndex;
+    if (selectedIdx === correct) {
+        score++;
+    }
+    
+    currentQIndex++;
+    renderQuestion(); // അടുത്ത ചോദ്യത്തിലേക്ക് പോകുന്നു
+}
+
+// പരീക്ഷ അവസാനിക്കുമ്പോൾ റിസൾട്ട് സേവ് ചെയ്യാൻ
+async function finishExam() {
+    alert(`പരീക്ഷ അവസാനിച്ചു! നിങ്ങളുടെ സ്കോർ: ${score}/${questions.length}`);
+    
+    try {
+        await db.collection("results").add({
+            studentName: currentStudentName || "Unknown",
+            studentPlace: currentStudentPlace || "Unknown",
+            score: score,
+            total: questions.length,
+            semester: selectedSem,
+            timestamp: new Date().getTime()
+        });
+        alert("നിങ്ങളുടെ മാർക്ക് വിജയകരമായി സേവ് ചെയ്തിട്ടുണ്ട്.");
+        showSection('home-screen');
+    } catch (e) {
+        alert("റിസൾട്ട് സേവ് ചെയ്യുന്നതിൽ തകരാർ!");
+    }
+}
+
