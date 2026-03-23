@@ -499,7 +499,6 @@ async function clearAllResults() {
 
     if(confirm(`Semester ${sem}-ലെ എല്ലാ റിസൾട്ടുകളും നീക്കം ചെയ്യട്ടെ?`)) {
         try {
-            // ശ്രദ്ധിക്കുക: നിങ്ങളുടെ ഡാറ്റാബേസിൽ സെമസ്റ്റർ String ആണോ Number ആണോ എന്ന് പരിശോധിക്കുക
             // String ആണെങ്കിൽ sem എന്നും Number ആണെങ്കിൽ parseInt(sem) എന്നും നൽകുക.
             const snap = await db.collection("results").where("semester", "==", sem).get();
             
@@ -530,12 +529,8 @@ async function deleteSingleResult(id) {
         }
     }
 }
-
-
-// അഡ്മിൻ പാനലിൽ എത്തുമ്പോൾ സംശയങ്ങൾ ലോഡ് ചെയ്യാൻ
 // showSection('admin-screen') ഫങ്ക്ഷനിൽ ഇത് കൂടി ചേർക്കുക:
 // if(id === 'admin-screen') loadDoubtsForAdmin();
-
 
 // --- 6. EXAM LOGIC ---
 async function startExam() {
@@ -547,14 +542,13 @@ async function startExam() {
     if(questions.length > 0) { 
         currentQIndex = 0; score = 0; 
         alert("പരീക്ഷ ആരംഭിക്കുന്നു!");
-        // ഇവിടെ വേണമെങ്കിൽ പരീക്ഷാ ചോദ്യങ്ങൾ കാണിക്കുന്ന ഫങ്ക്ഷൻ ചേർക്കാം
     } else {
         alert("ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ലഭ്യമല്ല.");
     }
 }
 
 function logout() { auth.signOut().then(() => location.reload()); }
-// --- 7. പുതിയ ട്രാക്കിംഗ് & അഡ്മിൻ ഫീച്ചറുകൾ (അവസാന ഭാഗം) ---
+// --- 7. പുതിയ ട്രാക്കിംഗ് & അഡ്മിൻ ഫീച്ചറുകൾ
 // അഡ്മിന് ആ സെമസ്റ്ററിലെ മുഴുവൻ കുട്ടികളുടെയും അറ്റൻഡൻസ് ലിസ്റ്റ് കാണാൻ
 async function viewSemesterAttendance() {
     const sem = selectedSem;
@@ -698,10 +692,7 @@ function fetchDoubtsForCurrentSem() {
     showSection('admin-screen'); // അഡ്മിൻ സ്ക്രീനിലേക്ക് കൊണ്ടുപോകുന്നു
     loadDoubtsForAdmin(); // അവിടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു
 }
-// പുതിയതായി ചേർക്കേണ്ടവ:
-
 // അഡ്മിന് ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
-// 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
 // 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്യാനും എഡിറ്റ് ഫോം കാണിക്കാനും
 async function loadAdminQuestions() {
     const sem = selectedSem;
@@ -821,3 +812,34 @@ function openExamManager() {
     }
 }
 
+function logout() {
+    if(confirm("ലോഗൗട്ട് ചെയ്യട്ടെ?")) {
+        // ഫോണിൽ സേവ് ചെയ്ത വിവരങ്ങൾ ഒഴിവാക്കുന്നു
+        for(let i=1; i<=5; i++) {
+            localStorage.removeItem(`isLoggedIn_S${i}`);
+        }
+        localStorage.removeItem('studentName');
+        localStorage.removeItem('studentPlace');
+
+        // ഫയർബേസിൽ നിന്ന് സൈൻ ഔട്ട് ചെയ്യുന്നു
+        auth.signOut().then(() => {
+            location.reload(); 
+        });
+    }
+}
+
+// ലോഗിൻ സ്റ്റാറ്റസ് എപ്പോഴും നിരീക്ഷിക്കാൻ (Auth Listener)
+auth.onAuthStateChanged(user => {
+    const logoutBtn = document.getElementById('logout-btn');
+    const logoutSidebar = document.getElementById('logout-btn-sidebar');
+    
+    if (user) {
+        // ലോഗിൻ ചെയ്തിട്ടുണ്ടെങ്കിൽ ഏത് സ്ക്രീനിലായാലും ബട്ടൺ കാണിക്കും
+        if (logoutBtn) logoutBtn.style.display = 'block';
+        if (logoutSidebar) logoutSidebar.style.display = 'block';
+    } else {
+        // ലോഗൗട്ട് ആണെങ്കിൽ ബട്ടൺ മറയ്ക്കും
+        if (logoutBtn) logoutBtn.style.display = 'none';
+        if (logoutSidebar) logoutSidebar.style.display = 'none';
+    }
+});
