@@ -223,49 +223,73 @@ function loadContents() {
         display.innerHTML = snap.docs.map(doc => {
             const data = doc.data();
             
-            // വീഡിയോകൾ വേർതിരിക്കുന്നു
+            // 1. വീഡിയോ ബട്ടണുകൾ
             let videoHTML = "";
             if (data.videoLinks) {
                 data.videoLinks.split(',').forEach((link, i) => {
-                    if(link.trim()) videoHTML += `<a href="${link.trim()}" target="_blank" class="primary-btn" style="background:#e74c3c; width:auto; font-size:0.75rem; margin:2px;">🎥 Video ${i+1}</a>`;
+                    if(link.trim()) videoHTML += `<a href="${link.trim()}" target="_blank" class="media-btn btn-video">📺 Video ${i+1}</a>`;
                 });
             }
 
-            // PDF-കൾ
+            // 2. PDF ബട്ടണുകൾ
             let pdfHTML = "";
             if (data.pdfLinks) {
                 data.pdfLinks.split(',').forEach((link, i) => {
-                    if(link.trim()) pdfHTML += `<a href="${link.trim()}" target="_blank" class="primary-btn" style="background:#27ae60; width:auto; font-size:0.75rem; margin:2px;">📄 PDF ${i+1}</a>`;
+                    if(link.trim()) pdfHTML += `<a href="${link.trim()}" target="_blank" class="media-btn btn-pdf">📄 PDF ${i+1}</a>`;
                 });
             }
 
-            // വോയിസുകൾ
+            // 3. ഓഡിയോ പ്ലെയറുകൾ (Google Drive Support ഉൾപ്പെടെ)
             let audioHTML = "";
             if (data.audioLinks) {
                 data.audioLinks.split(',').forEach((link, i) => {
-                    if(link.trim()) {
+                    let cleanLink = link.trim();
+                    if (cleanLink.includes("drive.google.com")) {
+                        const fileId = cleanLink.match(/\/d\/(.+?)\//) ? cleanLink.match(/\/d\/(.+?)\//)[1] : null;
+                        if (fileId) cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
+                    }
+
+                    if(cleanLink) {
                         audioHTML += `
-                            <div style="background:#f9f9f9; padding:5px; border-radius:8px; margin-top:5px; border:1px solid #eee;">
-                                <small style="font-size:10px; color:#2e7d32;">🎧 Voice Part ${i+1}</small>
-                                <audio controls src="${link.trim()}" style="width:100%; height:30px;"></audio>
+                            <div style="background:#f9f9f9; padding:8px; border-radius:12px; margin-top:8px; border:1px solid #eee;">
+                                <small style="font-size:11px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
+                                <audio controls preload="none" style="width:100%; height:35px; margin-top:5px;">
+                                    <source src="${cleanLink}" type="audio/mpeg">
+                                </audio>
                             </div>`;
                     }
                 });
             }
 
+            // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
+            const dateObj = data.displayDate ? new Date(data.displayDate) : null;
+            const formattedDate = dateObj ? dateObj.toLocaleString('en-GB', { 
+                day: '2-digit', month: '2-digit', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+            }) : 'No Date';
+
+            // 5. ഫൈനൽ ഔട്ട്പുട്ട് (HTML Card)
             return `
-            <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px; padding:15px; background:white; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
-                <small style="color:#888;">${data.displayDate || ''}</small>
-                <h4 style="margin:5px 0; color:var(--main);">${data.subject}: ${data.chapter}</h4>
-                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top:10px;">
+            <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px; padding:15px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <small style="color:#666; font-weight: 500;">📅 ${formattedDate}</small>
+                    ${data.part ? `<span style="background:#e8f5e9; color:#2e7d32; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">${data.part}</span>` : ''}
+                </div>
+                
+                <h4 style="margin:10px 0; color:var(--main); font-size:1.1rem; line-height:1.4;">
+                    ${data.subject}: <span style="font-weight:normal;">${data.chapter}</span>
+                </h4>
+
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top:12px;">
                     ${videoHTML} ${pdfHTML}
                 </div>
-                <div style="margin-top:10px;">${audioHTML}</div>
+
+                <div style="margin-top:12px;">${audioHTML}</div>
                 
                 ${isAdmin ? `
-                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
-                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.7rem;">📊 Track</button>
-                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.7rem;">🗑️ Delete</button>
+                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:10px;">
+                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 15px; cursor:pointer; font-size:0.75rem; flex:1;">📊 Track</button>
+                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:8px 15px; cursor:pointer; font-size:0.75rem; flex:1;">🗑️ Delete</button>
                     </div>
                 ` : ''}
             </div>`;
