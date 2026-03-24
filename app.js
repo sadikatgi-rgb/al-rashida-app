@@ -285,13 +285,15 @@ function loadContents() {
                 </div>
 
                 <div style="margin-top:12px;">${audioHTML}</div>
-                
                 ${isAdmin ? `
-                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:10px;">
-                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 15px; cursor:pointer; font-size:0.75rem; flex:1;">📊 Track</button>
-                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:8px 15px; cursor:pointer; font-size:0.75rem; flex:1;">🗑️ Delete</button>
-                    </div>
-                ` : ''}
+    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:8px; flex-wrap: wrap;">
+        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">📊 Track</button>
+        
+        <button onclick="openEditContent('${doc.id}')" style="background:#ffd600; color:#333; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">📝 Edit</button>
+        
+        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">🗑️ Delete</button>
+    </div>
+` : ''}          
             </div>`;
         }).join('');
     });
