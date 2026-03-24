@@ -698,17 +698,17 @@ async function viewTracking(contentId, title) {
     const list = document.getElementById('tracking-list-content');
     
     if(!modal || !list) { 
-        alert("ട്രാക്കിംഗ് മോഡൽ (HTML Modal) നിങ്ങളുടെ പേജിൽ കണ്ടെത്തിയില്ല!"); 
+        alert("ട്രാക്കിംഗ് മോഡൽ കണ്ടെത്തിയില്ല!"); 
         return; 
     }
 
-    modal.style.display = 'flex'; // മോഡൽ കാണിക്കുന്നു
+    modal.style.display = 'flex';
     list.innerHTML = "<p style='text-align:center;'>വിവരങ്ങൾ ശേഖരിക്കുന്നു...</p>";
 
     try {
+        // Query അല്പം കൂടി ലളിതമാക്കി (എറർ വരാതിരിക്കാൻ)
         const snap = await db.collection("activity")
             .where("contentId", "==", contentId)
-            .orderBy("timestamp", "desc")
             .get();
 
         if(snap.empty) {
@@ -716,27 +716,38 @@ async function viewTracking(contentId, title) {
             return;
         }
 
+        // ഡാറ്റ ലഭിച്ച ശേഷം ജാവാസ്ക്രിപ്റ്റ് ഉപയോഗിച്ച് സോർട്ട് ചെയ്യുന്നു (Index Error ഒഴിവാക്കാൻ)
+        const docs = snap.docs.map(doc => doc.data()).sort((a, b) => b.timestamp - a.timestamp);
+
         let html = `<p style='font-size:0.8rem; color:#555; margin-bottom:10px;'><b>ക്ലാസ്സ്:</b> ${title}</p>`;
         html += `<table style='width:100%; border-collapse:collapse; font-size:0.85rem;'>
                     <tr style='background:#f1f1f1;'>
-                        <th style='padding:8px; text-align:left; border:1px solid #ddd;'>വിദ്യാർത്ഥി</th>
+                        <th style='padding:8px; text-align:left; border:1px solid #ddd;'>വിദ്യാർത്ഥി / സമയം</th>
                         <th style='padding:8px; text-align:center; border:1px solid #ddd;'>വിഭാഗം</th>
                     </tr>`;
         
-        snap.forEach(doc => {
-            const d = doc.data();
+        docs.forEach(d => {
+            // സമയം ഫോർമാറ്റ് ചെയ്യുന്നു
+            const timeStr = d.timestamp ? new Date(d.timestamp.toDate()).toLocaleString('en-GB', { 
+                day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hour12: true 
+            }) : '---';
+
             html += `<tr>
                         <td style='padding:8px; border:1px solid #ddd;'>
-                            <b>${d.studentName}</b><br>
+                            <b style="color:#1976d2;">${d.studentName}</b><br>
+                            <small>📅 ${timeStr}</small><br>
                             <small>📍 ${d.studentPlace}</small>
                         </td>
-                        <td style='padding:8px; text-align:center; border:1px solid #ddd; color:green;'>✅ ${d.type}</td>
+                        <td style='padding:8px; text-align:center; border:1px solid #ddd;'>
+                            <span style="background:#e8f5e9; color:green; padding:2px 5px; border-radius:4px; font-size:10px;">✅ ${d.type}</span>
+                        </td>
                      </tr>`;
         });
         
         list.innerHTML = html + "</table>";
     } catch (error) {
-        list.innerHTML = "<p style='color:red;'>വിവരങ്ങൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</p>";
+        // യഥാർത്ഥ എറർ എന്താണെന്ന് അഡ്മിന് കാണിച്ചു കൊടുക്കുന്നു
+        list.innerHTML = `<p style='color:red; padding:10px;'>Error: ${error.message}</p>`;
         console.error(error);
     }
 }
