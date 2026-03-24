@@ -246,22 +246,24 @@ if (data.audioLinks) {
         let cleanLink = link.trim();
         
         if (cleanLink.includes("drive.google.com")) {
-            // കൂടുതൽ കൃത്യമായി ഫയൽ ഐഡി കണ്ടെത്താൻ (വിവിധ തരം ഡ്രൈവ് ലിങ്കുകൾക്കായി)
-            const fileIdMatch = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$)/);
-            const fileId = fileIdMatch ? (fileIdMatch[1] || fileIdMatch[2]) : null;
-            
-            if (fileId) {
-                // Direct Download Link നിർമ്മിക്കുന്നു
+            // ഡ്രൈവ് ലിങ്കിൽ നിന്ന് ID എടുക്കാൻ കൂടുതൽ കൃത്യമായ വഴി
+            let fileId = "";
+            const match = cleanLink.match(/\/d\/(.+?)\//) || cleanLink.match(/id=(.+?)(&|$)/);
+            if (match) {
+                fileId = match[1];
+                // 'uc' എന്നതിന് പകരം 'docs.google.com/get_video_info' ഉപയോഗിക്കുന്നത് ചിലപ്പോൾ കൂടുതൽ ഫലപ്രദമാണ്
+                // എങ്കിലും പൊതുവെ താഴെ പറയുന്ന ലിങ്ക് മതിയാകും:
                 cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
             }
         }
 
         if(cleanLink) {
             audioHTML += `
-                <div style="background:#f9f9f9; padding:8px; border-radius:12px; margin-top:8px; border:1px solid #eee;">
-                    <small style="font-size:11px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
-                    <audio controls preload="none" style="width:100%; height:35px; margin-top:5px;">
+                <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
+                    <small style="font-size:12px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
+                    <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
                         <source src="${cleanLink}" type="audio/mpeg">
+                        <source src="${cleanLink}" type="audio/wav">
                         Your browser does not support the audio element.
                     </audio>
                 </div>`;
