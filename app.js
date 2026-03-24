@@ -203,53 +203,76 @@ function initStudentApp() {
         }
     });
 }
-
 function loadContents() {
     const display = document.getElementById('content-display');
     const adminPanel = document.getElementById('admin-semester-tools');
-    const semSpan = document.getElementById('current-sem-display');
-
-    // 1. അഡ്മിൻ ആണെങ്കിൽ സെമസ്റ്റർ പേജിലെ കൺട്രോൾ പാനൽ കാണിക്കുന്നു
     const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
     
-    if (adminPanel) {
-        adminPanel.style.display = isAdmin ? 'block' : 'none';
-        if (semSpan) semSpan.innerText = selectedSem;
-    }
+    if (adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
 
-    // 2. ഡാറ്റാബേസിൽ നിന്ന് ക്ലാസുകൾ തത്സമയം (Real-time) എടുക്കുന്നു
     db.collection("contents")
     .where("semester", "==", parseInt(selectedSem))
     .orderBy("timestamp", "desc")
     .onSnapshot(snap => {
         if (!display) return;
-        
         if (snap.empty) {
-            display.innerHTML = "<p style='text-align:center; padding:20px;'>ഈ സെമസ്റ്ററിൽ ക്ലാസുകൾ ലഭ്യമല്ല.</p>";
+            display.innerHTML = "<p style='text-align:center; padding:20px;'>ക്ലാസുകൾ ലഭ്യമല്ല.</p>";
             return;
         }
 
         display.innerHTML = snap.docs.map(doc => {
             const data = doc.data();
-            const l = data.links || {};
+            
+            // വീഡിയോകൾ വേർതിരിക്കുന്നു
+            let videoHTML = "";
+            if (data.videoLinks) {
+                data.videoLinks.split(',').forEach((link, i) => {
+                    if(link.trim()) videoHTML += `<a href="${link.trim()}" target="_blank" class="primary-btn" style="background:#e74c3c; width:auto; font-size:0.75rem; margin:2px;">🎥 Video ${i+1}</a>`;
+                });
+            }
+
+            // PDF-കൾ
+            let pdfHTML = "";
+            if (data.pdfLinks) {
+                data.pdfLinks.split(',').forEach((link, i) => {
+                    if(link.trim()) pdfHTML += `<a href="${link.trim()}" target="_blank" class="primary-btn" style="background:#27ae60; width:auto; font-size:0.75rem; margin:2px;">📄 PDF ${i+1}</a>`;
+                });
+            }
+
+            // വോയിസുകൾ
+            let audioHTML = "";
+            if (data.audioLinks) {
+                data.audioLinks.split(',').forEach((link, i) => {
+                    if(link.trim()) {
+                        audioHTML += `
+                            <div style="background:#f9f9f9; padding:5px; border-radius:8px; margin-top:5px; border:1px solid #eee;">
+                                <small style="font-size:10px; color:#2e7d32;">🎧 Voice Part ${i+1}</small>
+                                <audio controls src="${link.trim()}" style="width:100%; height:30px;"></audio>
+                            </div>`;
+                    }
+                });
+            }
+
             return `
-            <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px;">
-                <small style="color:#666;">${data.displayDate || ''}</small>
+            <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px; padding:15px; background:white; border-radius:10px; box-shadow:0 2px 5px rgba(0,0,0,0.05);">
+                <small style="color:#888;">${data.displayDate || ''}</small>
                 <h4 style="margin:5px 0; color:var(--main);">${data.subject}: ${data.chapter}</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top:10px;">
-                    ${l.video ? `<a href="${l.video}" target="_blank" onclick="trackActivity('${doc.id}', 'Video')" class="primary-btn" style="background:#e74c3c; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">🎥 Video</a>` : ''}
-                    ${l.audio ? `<a href="${l.audio}" target="_blank" onclick="trackActivity('${doc.id}', 'Audio')" class="primary-btn" style="background:#0288d1; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">🎧 Audio</a>` : ''}
-                    ${l.pdf ? `<a href="${l.pdf}" target="_blank" onclick="trackActivity('${doc.id}', 'PDF')" class="primary-btn" style="background:#27ae60; text-decoration:none; padding:8px 12px; width:auto; font-size:0.8rem;">📄 PDF</a>` : ''}
-                    
-                    ${isAdmin ? `
-                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:0 12px; cursor:pointer; font-size:0.8rem;">📊 Track</button>
-                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:0 8px; cursor:pointer;">🗑️</button>
-                    ` : ''}
+                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top:10px;">
+                    ${videoHTML} ${pdfHTML}
                 </div>
+                <div style="margin-top:10px;">${audioHTML}</div>
+                
+                ${isAdmin ? `
+                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.7rem;">📊 Track</button>
+                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer; font-size:0.7rem;">🗑️ Delete</button>
+                    </div>
+                ` : ''}
             </div>`;
         }).join('');
     });
 }
+
 // --- 5. അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
 
 // 1. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക
@@ -260,6 +283,7 @@ async function uploadDetailedContent() {
     const part = document.getElementById('content-part').value;
     const customTime = document.getElementById('content-datetime').value;
     
+    // ഒന്നിലധികം ലിങ്കുകൾ കോമ ഇട്ട് ഇവിടെ വരും
     const video = document.getElementById('link-video').value;
     const audio = document.getElementById('link-audio').value;
     const pdf = document.getElementById('link-pdf').value;
@@ -276,7 +300,10 @@ async function uploadDetailedContent() {
             chapter: chapter,
             part: part || "",
             displayDate: customTime || new Date().toISOString(),
-            links: { video: video || "", audio: audio || "", pdf: pdf || "" },
+            // മാറ്റം വരുത്തിയത് ഇവിടെയാണ്:
+            videoLinks: video || "", 
+            audioLinks: audio || "", 
+            pdfLinks: pdf || "",
             timestamp: new Date().getTime() 
         });
         alert(`Semester ${sem}-ലേക്ക് ക്ലാസ് അപ്‌ലോഡ് ചെയ്തു!`);
@@ -284,8 +311,10 @@ async function uploadDetailedContent() {
         // ഫോം ക്ലിയർ ചെയ്യാൻ
         document.getElementById('content-subject').value = "";
         document.getElementById('content-chapter').value = "";
+        document.getElementById('link-video').value = "";
+        document.getElementById('link-audio').value = "";
+        document.getElementById('link-pdf').value = "";
     } catch (error) { 
-        console.error(error);
         alert("അപ്‌ലോഡിംഗിൽ തകരാർ: " + error.message); 
     }
 }
@@ -706,9 +735,9 @@ function fetchDoubtsForCurrentSem() {
     loadDoubtsForAdmin(); // അവിടെ സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു
 }
 // അഡ്മിന് ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്ത് കാണാൻ
-// 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്യാനും എഡിറ്റ് ഫോം കാണിക്കാനും
+// 1. ചോദ്യങ്ങൾ ലിസ്റ്റ് ചെയ്യാൻ
 async function loadAdminQuestions() {
-    const sem = selectedSem;
+    const sem = selectedSem; 
     if(!sem || sem === 'admin') return;
 
     const listArea = document.getElementById('tracking-list-content');
@@ -719,45 +748,53 @@ async function loadAdminQuestions() {
     try {
         const snap = await db.collection("questions").where("semester", "==", parseInt(sem)).get();
         if(snap.empty) {
-            listArea.innerHTML = "<p style='text-align:center; color:red;'>ചോദ്യങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</p>";
+            listArea.innerHTML = "<p style='text-align:center; color:red; padding:20px;'>ഈ സെമസ്റ്ററിൽ ചോദ്യങ്ങൾ ഒന്നും കണ്ടെത്തിയില്ല.</p>";
             return;
         }
 
-        let html = `<h3 style="color:var(--main); border-bottom:2px solid #ddd; padding-bottom:10px;">Semester ${sem} - All Questions (${snap.size})</h3>`;
+        let html = `<h3 style="color:#2e7d32; border-bottom:2px solid #eee; padding-bottom:10px; margin-bottom:20px;">Semester ${sem} - (${snap.size} Questions)</h3>`;
         
         snap.forEach(doc => {
             const d = doc.data();
             const qId = doc.id;
             html += `
-            <div id="q-card-${qId}" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:8px; background:#fff; text-align:left;">
+            <div id="q-card-${qId}" style="border:1px solid #ddd; padding:15px; margin-bottom:15px; border-radius:12px; background:#fff; box-shadow:0 2px 4px rgba(0,0,0,0.05);">
                 
-                <div id="edit-form-${qId}" style="display:none; background:#f9f9f9; padding:10px; border-radius:5px;">
-                    <textarea id="edit-q-${qId}" style="width:100%; height:50px; margin-bottom:10px;">${d.text}</textarea>
-                    <input type="text" id="edit-opt0-${qId}" value="${d.options[0]}" placeholder="Option 1" style="width:48%; margin:1%;">
-                    <input type="text" id="edit-opt1-${qId}" value="${d.options[1]}" placeholder="Option 2" style="width:48%; margin:1%;">
-                    <input type="text" id="edit-opt2-${qId}" value="${d.options[2]}" placeholder="Option 3" style="width:48%; margin:1%;">
-                    <input type="text" id="edit-opt3-${qId}" value="${d.options[3]}" placeholder="Option 4" style="width:48%; margin:1%;">
-                    <select id="edit-idx-${qId}" style="width:100%; margin:10px 0; padding:5px;">
+                <div id="edit-form-${qId}" style="display:none; background:#f1f8e9; padding:15px; border-radius:8px;">
+                    <label style="font-size:12px; font-weight:bold;">ചോദ്യം:</label>
+                    <textarea id="edit-q-${qId}" style="width:100%; height:60px; margin:5px 0 15px 0; border-radius:5px; border:1px solid #ccc; padding:8px;">${d.text}</textarea>
+                    
+                    <label style="font-size:12px; font-weight:bold;">ഓപ്ഷനുകൾ:</label>
+                    <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:5px;">
+                        <input type="text" id="edit-opt0-${qId}" value="${d.options[0]}" style="flex:1; min-width:45%; padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <input type="text" id="edit-opt1-${qId}" value="${d.options[1]}" style="flex:1; min-width:45%; padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <input type="text" id="edit-opt2-${qId}" value="${d.options[2]}" style="flex:1; min-width:45%; padding:8px; border-radius:5px; border:1px solid #ccc;">
+                        <input type="text" id="edit-opt3-${qId}" value="${d.options[3]}" style="flex:1; min-width:45%; padding:8px; border-radius:5px; border:1px solid #ccc;">
+                    </div>
+
+                    <label style="font-size:12px; font-weight:bold; display:block; margin-top:15px;">ശരിയായ ഉത്തരം:</label>
+                    <select id="edit-idx-${qId}" style="width:100%; margin:5px 0 15px 0; padding:10px; border-radius:5px; border:1px solid #ccc;">
                         <option value="0" ${d.correctIndex === 0 ? 'selected' : ''}>Option 1 Correct</option>
                         <option value="1" ${d.correctIndex === 1 ? 'selected' : ''}>Option 2 Correct</option>
                         <option value="2" ${d.correctIndex === 2 ? 'selected' : ''}>Option 3 Correct</option>
                         <option value="3" ${d.correctIndex === 3 ? 'selected' : ''}>Option 4 Correct</option>
                     </select>
-                    <button onclick="saveUpdatedQuestion('${qId}')" style="background:green; color:white; border:none; padding:8px; width:100%; border-radius:5px; cursor:pointer;">Update Question</button>
-                    <button onclick="toggleEditDiv('${qId}')" style="background:none; color:gray; border:none; width:100%; margin-top:5px; cursor:pointer;">Cancel</button>
+
+                    <button onclick="saveUpdatedQuestion('${qId}')" style="background:#2e7d32; color:white; border:none; padding:12px; width:100%; border-radius:8px; cursor:pointer; font-weight:bold;">Save Changes</button>
+                    <button onclick="toggleEditDiv('${qId}')" style="background:none; color:gray; border:none; width:100%; margin-top:10px; cursor:pointer;">Cancel</button>
                 </div>
 
                 <div id="display-info-${qId}">
-                    <p style="margin:0 0 10px 0; font-weight:bold;">Q: ${d.text}</p>
-                    <ul style="list-style:none; padding:0; font-size:0.9rem;">
-                        <li style="${d.correctIndex === 0 ? 'color:green; font-weight:bold;' : ''}">1. ${d.options[0]}</li>
-                        <li style="${d.correctIndex === 1 ? 'color:green; font-weight:bold;' : ''}">2. ${d.options[1]}</li>
-                        <li style="${d.correctIndex === 2 ? 'color:green; font-weight:bold;' : ''}">3. ${d.options[2]}</li>
-                        <li style="${d.correctIndex === 3 ? 'color:green; font-weight:bold;' : ''}">4. ${d.options[3]}</li>
-                    </ul>
-                    <div style="margin-top:12px; display:flex; gap:10px;">
-                        <button onclick="toggleEditDiv('${qId}')" style="background:#2196F3; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Edit</button>
-                        <button onclick="deleteSingleQuestion('${qId}')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;">Delete</button>
+                    <p style="margin:0 0 12px 0; font-weight:bold; color:#333; font-size:1.1rem;">Q: ${d.text}</p>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div style="padding:8px; border-radius:5px; background:${d.correctIndex === 0 ? '#e8f5e9' : '#f5f5f5'}; color:${d.correctIndex === 0 ? '#2e7d32' : '#666'}; font-weight:${d.correctIndex === 0 ? 'bold' : 'normal'}">1. ${d.options[0]}</div>
+                        <div style="padding:8px; border-radius:5px; background:${d.correctIndex === 1 ? '#e8f5e9' : '#f5f5f5'}; color:${d.correctIndex === 1 ? '#2e7d32' : '#666'}; font-weight:${d.correctIndex === 1 ? 'bold' : 'normal'}">2. ${d.options[1]}</div>
+                        <div style="padding:8px; border-radius:5px; background:${d.correctIndex === 2 ? '#e8f5e9' : '#f5f5f5'}; color:${d.correctIndex === 2 ? '#2e7d32' : '#666'}; font-weight:${d.correctIndex === 2 ? 'bold' : 'normal'}">3. ${d.options[2]}</div>
+                        <div style="padding:8px; border-radius:5px; background:${d.correctIndex === 3 ? '#e8f5e9' : '#f5f5f5'}; color:${d.correctIndex === 3 ? '#2e7d32' : '#666'}; font-weight:${d.correctIndex === 3 ? 'bold' : 'normal'}">4. ${d.options[3]}</div>
+                    </div>
+                    <div style="margin-top:15px; display:flex; gap:10px;">
+                        <button onclick="toggleEditDiv('${qId}')" style="background:#1976d2; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">Edit</button>
+                        <button onclick="deleteSingleQuestion('${qId}')" style="background:#d32f2f; color:white; border:none; padding:8px 20px; border-radius:6px; cursor:pointer;">Delete</button>
                     </div>
                 </div>
             </div>`;
@@ -770,12 +807,17 @@ async function loadAdminQuestions() {
 function toggleEditDiv(id) {
     const form = document.getElementById(`edit-form-${id}`);
     const info = document.getElementById(`display-info-${id}`);
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-    info.style.display = info.style.display === 'none' ? 'block' : 'none';
+    const isHidden = form.style.display === 'none';
+    form.style.display = isHidden ? 'block' : 'none';
+    info.style.display = isHidden ? 'none' : 'block';
 }
 
 // 3. മാറ്റങ്ങൾ സേവ് ചെയ്യാൻ
 async function saveUpdatedQuestion(id) {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.innerText = "Updating...";
+
     const text = document.getElementById(`edit-q-${id}`).value;
     const options = [
         document.getElementById(`edit-opt0-${id}`).value,
@@ -789,22 +831,25 @@ async function saveUpdatedQuestion(id) {
         await db.collection("questions").doc(id).update({
             text: text,
             options: options,
-            correctIndex: correctIndex,
-            timestamp: new Date().getTime()
+            correctIndex: correctIndex
         });
         alert("വിജയകരമായി പുതുക്കി!");
         loadAdminQuestions(); 
-    } catch (e) { alert("Error: " + e.message); }
+    } catch (e) { 
+        alert("Error: " + e.message); 
+        btn.disabled = false;
+        btn.innerText = "Save Changes";
+    }
 }
 
-// 4. ചോദ്യം ഒഴിവാക്കാൻ
+// 4. ഡിലീറ്റ് ചെയ്യാൻ
 async function deleteSingleQuestion(id) {
-    if(confirm("ഈ ചോദ്യം ഒഴിവാക്കട്ടെ?")) {
-        try {
-            await db.collection("questions").doc(id).delete();
-            loadAdminQuestions();
-        } catch(e) { alert("Error deleting!"); }
-    }
+    if(!confirm("ഈ ചോദ്യം ഡിലീറ്റ് ചെയ്യണോ?")) return;
+    try {
+        await db.collection("questions").doc(id).delete();
+        alert("ചോദ്യം ഡിലീറ്റ് ചെയ്തു.");
+        loadAdminQuestions();
+    } catch (e) { alert("Error: " + e.message); }
 }
 
 // പരീക്ഷ തുടങ്ങാനും നിർത്താനും (Exam Control)
