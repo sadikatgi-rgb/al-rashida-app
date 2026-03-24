@@ -764,6 +764,77 @@ async function deleteContent(id) {
         }
     }
 }
+// 1. എഡിറ്റ് ഫോം തുറക്കാനുള്ള ഫങ്ക്ഷൻ
+async function openEditContent(docId) {
+    try {
+        const doc = await db.collection("contents").doc(docId).get();
+        if(!doc.exists) { alert("ഈ ക്ലാസ്സ് കണ്ടെത്താനായില്ല!"); return; }
+        
+        const d = doc.data();
+
+        // എഡിറ്റ് ചെയ്യാനുള്ള പോപ്പ്അപ്പ് (Modal) ഉണ്ടാക്കുന്നു
+        const html = `
+            <div id="edit-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center;">
+                <div style="background:white; padding:20px; border-radius:15px; width:90%; max-width:400px; max-height:90%; overflow-y:auto; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+                    <h3 style="color:var(--main); margin-top:0;">Edit Class</h3>
+                    
+                    <input type="text" id="edit-subject" value="${d.subject || ''}" placeholder="വിഷയം">
+                    <input type="text" id="edit-chapter" value="${d.chapter || ''}" placeholder="പാഠം">
+                    <input type="text" id="edit-part" value="${d.part || ''}" placeholder="ഭാഗം (Optional)">
+                    
+                    <p style="margin:10px 0 0; font-size:0.8rem; color:#666;">ക്ലാസ്സ് തിയതി (ISO):</p>
+                    <input type="datetime-local" id="edit-datetime" value="${d.displayDate ? d.displayDate.substring(0,16) : ''}">
+
+                    <p style="margin:10px 0 0; font-size:0.75rem; color:#2e7d32; font-weight:bold;">വീഡിയോ ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+                    <textarea id="edit-video" style="width:100%; min-height:60px;">${d.videoLinks || ''}</textarea>
+
+                    <p style="margin:5px 0 0; font-size:0.75rem; color:#2e7d32; font-weight:bold;">ഓഡിയോ ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+                    <textarea id="edit-audio" style="width:100%; min-height:60px;">${d.audioLinks || ''}</textarea>
+
+                    <p style="margin:5px 0 0; font-size:0.75rem; color:#2e7d32; font-weight:bold;">PDF ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+                    <textarea id="edit-pdf" style="width:100%; min-height:60px;">${d.pdfLinks || ''}</textarea>
+
+                    <div style="display:flex; gap:10px; margin-top:15px;">
+                        <button onclick="saveEditContent('${docId}')" class="primary-btn" style="background:#2e7d32; flex:1;">Save</button>
+                        <button onclick="closeEditModal()" class="back-home-btn" style="flex:1; margin-top:0;">Cancel</button>
+                    </div>
+                </div>
+            </div>`;
+
+        // മോഡൽ ബോഡിയിലേക്ക് ചേർക്കുന്നു
+        document.body.insertAdjacentHTML('beforeend', html);
+    } catch (e) { alert("Error: " + e.message); }
+}
+
+// 2. മാറ്റങ്ങൾ സേവ് ചെയ്യാനുള്ള ഫങ്ക്ഷൻ
+async function saveEditContent(docId) {
+    const btn = event.target;
+    btn.innerText = "Saving...";
+    btn.disabled = true;
+
+    try {
+        await db.collection("contents").doc(docId).update({
+            subject: document.getElementById('edit-subject').value,
+            chapter: document.getElementById('edit-chapter').value,
+            part: document.getElementById('edit-part').value,
+            displayDate: document.getElementById('edit-datetime').value,
+            videoLinks: document.getElementById('edit-video').value,
+            audioLinks: document.getElementById('edit-audio').value,
+            pdfLinks: document.getElementById('edit-pdf').value,
+            lastEdited: firebase.firestore.FieldValue.serverTimestamp() // എഡിറ്റ് ചെയ്ത സമയം രേഖപ്പെടുത്തുന്നു
+        });
+        alert("ക്ലാസ്സ് വിജയകരമായി പുതുക്കി!");
+        closeEditModal();
+        // loadContents() വഴിയോ loadAdminQuestions() വഴിയോ ലിസ്റ്റ് പുതുക്കുക
+        if(typeof loadContents === 'function') loadContents();
+    } catch (e) { alert("Error: " + e.message); btn.innerText = "Save"; btn.disabled = false; }
+}
+
+// 3. മോഡൽ അടയ്ക്കാനുള്ള ഫങ്ക്ഷൻ
+function closeEditModal() {
+    const modal = document.getElementById('edit-modal');
+    if(modal) modal.remove();
+}
 
 // 4. അഡ്മിന് ആ സെമസ്റ്ററിലെ സംശയങ്ങൾ നേരിട്ട് കാണാൻ
 function fetchDoubtsForCurrentSem() {
