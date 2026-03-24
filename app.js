@@ -240,26 +240,34 @@ function loadContents() {
             }
 
             // 3. ഓഡിയോ പ്ലെയറുകൾ (Google Drive Support ഉൾപ്പെടെ)
-            let audioHTML = "";
-            if (data.audioLinks) {
-                data.audioLinks.split(',').forEach((link, i) => {
-                    let cleanLink = link.trim();
-                    if (cleanLink.includes("drive.google.com")) {
-                        const fileId = cleanLink.match(/\/d\/(.+?)\//) ? cleanLink.match(/\/d\/(.+?)\//)[1] : null;
-                        if (fileId) cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
-                    }
-
-                    if(cleanLink) {
-                        audioHTML += `
-                            <div style="background:#f9f9f9; padding:8px; border-radius:12px; margin-top:8px; border:1px solid #eee;">
-                                <small style="font-size:11px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
-                                <audio controls preload="none" style="width:100%; height:35px; margin-top:5px;">
-                                    <source src="${cleanLink}" type="audio/mpeg">
-                                </audio>
-                            </div>`;
-                    }
-                });
+let audioHTML = "";
+if (data.audioLinks) {
+    data.audioLinks.split(',').forEach((link, i) => {
+        let cleanLink = link.trim();
+        
+        if (cleanLink.includes("drive.google.com")) {
+            // കൂടുതൽ കൃത്യമായി ഫയൽ ഐഡി കണ്ടെത്താൻ (വിവിധ തരം ഡ്രൈവ് ലിങ്കുകൾക്കായി)
+            const fileIdMatch = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$)/);
+            const fileId = fileIdMatch ? (fileIdMatch[1] || fileIdMatch[2]) : null;
+            
+            if (fileId) {
+                // Direct Download Link നിർമ്മിക്കുന്നു
+                cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
             }
+        }
+
+        if(cleanLink) {
+            audioHTML += `
+                <div style="background:#f9f9f9; padding:8px; border-radius:12px; margin-top:8px; border:1px solid #eee;">
+                    <small style="font-size:11px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
+                    <audio controls preload="none" style="width:100%; height:35px; margin-top:5px;">
+                        <source src="${cleanLink}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>`;
+        }
+    });
+}
 
             // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
             const dateObj = data.displayDate ? new Date(data.displayDate) : null;
