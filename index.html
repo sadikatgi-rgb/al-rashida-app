@@ -155,22 +155,27 @@
         </div>
         <hr style="margin:25px 0;">
         <h4 style="color: #33691e;">3. ക്ലാസുകൾ അപ്‌ലോഡ് ചെയ്യുക</h4>
-        <div class="admin-form" style="background: #f1f8e9; padding: 15px; border-radius: 12px; border: 1px solid #c5e1a5;">
-            <p style="font-weight:bold;">Uploading to Semester: <span id="current-upload-sem" style="color:red;">Selected Semester</span></p>
+<div class="admin-form" style="background: #f1f8e9; padding: 15px; border-radius: 12px; border: 1px solid #c5e1a5;">
+    <p style="font-weight:bold;">Uploading to Semester: <span id="current-upload-sem" style="color:red;">Selected Semester</span></p>
 
-            <input type="text" id="content-subject" placeholder="വിഷയം (ഉദാ: ഫിഖ്ഹ്)">
-            <input type="text" id="content-chapter" placeholder="പാഠം / ചാപ്റ്റർ പേര്">
-            <input type="text" id="content-part" placeholder="ഭാഗം (ഉദാ: ഭാഗം 1, ക്ലാസ് 10)">
-            
-            <p style="margin:5px 0 0; font-size:0.8rem; color: #555;">ക്ലാസ്സ് തിയതിയും സമയവും:</p>
-            <input type="datetime-local" id="content-datetime">
+    <input type="text" id="content-subject" placeholder="വിഷയം (ഉദാ: ഫിഖ്ഹ്)">
+    <input type="text" id="content-chapter" placeholder="പാഠം / ചാപ്റ്റർ പേര്">
+    <input type="text" id="content-part" placeholder="ഭാഗം (ഉദാ: ഭാഗം 1, ക്ലാസ് 10)">
+    
+    <p style="margin:5px 0 0; font-size:0.8rem; color: #555;">ക്ലാസ്സ് തിയതിയും സമയവും:</p>
+    <input type="datetime-local" id="content-datetime">
 
-            <input type="text" id="link-video" placeholder="Video Link (YouTube/Drive)">
-            <input type="text" id="link-audio" placeholder="Audio Link">
-            <input type="text" id="link-pdf" placeholder="PDF Link">
-            
-            <button onclick="uploadDetailedContent()" class="primary-btn" style="background:#33691e;">Upload Class</button>
-        </div>
+    <p style="margin:10px 0 0; font-size:0.75rem; color: #2e7d32;">വീഡിയോ ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+    <textarea id="link-video" placeholder="link1, link2..." style="width:100%; border-radius:8px; border:1px solid #ccc; padding:8px; margin-bottom:5px;"></textarea>
+
+    <p style="margin:5px 0 0; font-size:0.75rem; color: #2e7d32;">ഓഡിയോ ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+    <textarea id="link-audio" placeholder="audio1, audio2..." style="width:100%; border-radius:8px; border:1px solid #ccc; padding:8px; margin-bottom:5px;"></textarea>
+
+    <p style="margin:5px 0 0; font-size:0.75rem; color: #2e7d32;">PDF ലിങ്കുകൾ (കോമ ഇട്ട് നൽകുക):</p>
+    <textarea id="link-pdf" placeholder="pdf1, pdf2..." style="width:100%; border-radius:8px; border:1px solid #ccc; padding:8px; margin-bottom:10px;"></textarea>
+    
+    <button onclick="uploadDetailedContent()" class="primary-btn" style="background:#33691e; width:100%; padding:12px; font-weight:bold;">Upload Class</button>
+</div>
 
         <hr style="margin:25px 0;">
         <h4>4. വിദ്യാർത്ഥികളുടെ സംശയങ്ങൾ & മറുപടി</h4>
