@@ -267,15 +267,28 @@ tbody tr:nth-child(even) {
     .semester-grid { 
         grid-template-columns: repeat(2, 1fr); 
         gap: 12px;
-    } /* ഇവിടെ ബ്രാക്കറ്റ് ക്ലോസ് ചെയ്യണം */
+    } 
 
-    /* അഡ്മിൻ ടൂൾസ് സെക്ഷൻ */
+    /* മൊബൈലിൽ വീഡിയോ/PDF ബട്ടണുകൾ ഫുൾ വിഡ്ത്ത് വരാൻ */
+    .media-btn {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+        text-align: center;
+    }
+
+    /* അഡ്മിൻ ടൂൾസ് സെക്ഷൻ മൊബൈലിൽ ക്രമീകരിക്കാൻ */
     #admin-semester-tools div {
         grid-template-columns: 1fr 1fr !important;
         display: grid !important;
         gap: 8px !important;
     }
     
+    .card { padding: 15px; }
+
+    .logo-area h1 { font-size: 0.9rem; }
+}
+ 
     .card { padding: 15px; }
 
     /* ക്ലാസ് ലിസ്റ്റിലെ വീഡിയോ/ഓഡിയോ ബട്ടണുകൾ */
@@ -291,4 +304,93 @@ tbody tr:nth-child(even) {
         padding: 12px;
         font-size: 0.9rem;
     }
+}
+/* --- പുതിയ മീഡിയ ബട്ടൺ സ്റ്റൈലുകൾ --- */
+/* --- റെസ്പോൺസീവ് (മൊബൈൽ ക്രമീകരണങ്ങൾ) --- */
+@media (max-width: 480px) {
+    .semester-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px;
+    } 
+
+    /* മൊബൈലിൽ വീഡിയോ/PDF ബട്ടണുകൾ ഫുൾ വിഡ്ത്ത് വരാൻ */
+    .media-btn, #content-display .primary-btn {
+        display: block;
+        width: 100% !important;
+        margin: 5px 0 !important;
+        text-align: center;
+        padding: 12px;
+    }
+
+    /* അഡ്മിൻ ടൂൾസ് സെക്ഷൻ മൊബൈലിൽ */
+    #admin-semester-tools div {
+        grid-template-columns: 1fr 1fr !important;
+        display: grid !important;
+        gap: 8px !important;
+    }
+    
+    .card { padding: 15px; }
+    .logo-area h1 { font-size: 0.9rem; }
+    
+    input, textarea, select {
+        padding: 12px;
+        font-size: 0.9rem;
+    }
+} /* @media ഇവിടെ അവസാനിക്കുന്നു */
+
+/* --- പുതിയ മീഡിയ ബട്ടൺ സ്റ്റൈലുകൾ (Common) --- */
+.media-btn {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 4px 2px;
+    border-radius: 8px;
+    color: white !important;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+    transition: 0.3s;
+    border: none;
+}
+
+.btn-video { background-color: #d32f2f; } /* ചുവപ്പ് */
+.btn-pdf { background-color: #1976d2; }   /* നീല */
+
+.btn-video:hover, .btn-pdf:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* ഓഡിയോ സെക്ഷൻ സ്റ്റൈൽ */
+.audio-list {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.voice-part {
+    background: #f1f8e9;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #c8e6c9;
+}
+
+.voice-part p {
+    margin: 0 0 5px 0;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #2e7d32;
+}
+
+audio {
+    width: 100%;
+    height: 35px;
+    outline: none;
+}
+
+/* അഡ്മിൻ പാനലിലെ ടെക്സ്റ്റ് ഏരിയ */
+.admin-form textarea {
+    min-height: 60px;
+    resize: vertical;
 }
