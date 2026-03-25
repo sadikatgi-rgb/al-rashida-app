@@ -246,16 +246,12 @@ if (data.audioLinks) {
     data.audioLinks.split(',').forEach((link, i) => {
         let cleanLink = link.trim();
         if (cleanLink.includes("drive.google.com")) {
-            // ഡ്രൈവ് ലിങ്കിൽ നിന്ന് ID എടുക്കാൻ ലളിതമായ വഴി
-            let fileId = "";
-            if (cleanLink.includes("/d/")) {
-                fileId = cleanLink.split('/d/')[1].split('/')[0];
-            } else if (cleanLink.includes("id=")) {
-                fileId = cleanLink.split('id=')[1].split('&')[0];
-            }
+            
+            // പുതിയ രീതി:Regex ഉപയോഗിച്ച് ഏത് ടൈപ്പ് ലിങ്കിൽ നിന്നും ID എടുക്കുന്നു
+            const match = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$)/);
+            const fileId = match ? (match[1] || match[2]) : null;
 
             if (fileId) {
-                // പ്ലെയർ സപ്പോർട്ട് ചെയ്യുന്ന ലിങ്ക്
                 cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
             }
         }
@@ -264,9 +260,8 @@ if (data.audioLinks) {
             audioHTML += `
                 <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
                     <small style="font-size:12px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
-                    <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
+                    <audio controls preload="none" onplay="trackActivity('${doc.id}', 'Audio')" style="width:100%; height:40px; margin-top:5px;">
                         <source src="${cleanLink}" type="audio/mpeg">
-                        <source src="${cleanLink}" type="audio/wav">
                     </audio>
                 </div>`;
         }
