@@ -240,19 +240,22 @@ function loadContents() {
             }
 
             // 3. ഓഡിയോ പ്ലെയറുകൾ (Google Drive Support ഉൾപ്പെടെ)
+// 1. ഓഡിയോ പ്ലെയർ ഭാഗം
 let audioHTML = "";
 if (data.audioLinks) {
     data.audioLinks.split(',').forEach((link, i) => {
         let cleanLink = link.trim();
-        
         if (cleanLink.includes("drive.google.com")) {
-            // ഡ്രൈവ് ലിങ്കിൽ നിന്ന് ID എടുക്കാൻ കൂടുതൽ കൃത്യമായ വഴി
+            // ഡ്രൈവ് ലിങ്കിൽ നിന്ന് ID എടുക്കാൻ ലളിതമായ വഴി
             let fileId = "";
-            const match = cleanLink.match(/\/d\/(.+?)\//) || cleanLink.match(/id=(.+?)(&|$)/);
-            if (match) {
-                fileId = match[1];
-                // 'uc' എന്നതിന് പകരം 'docs.google.com/get_video_info' ഉപയോഗിക്കുന്നത് ചിലപ്പോൾ കൂടുതൽ ഫലപ്രദമാണ്
-                // എങ്കിലും പൊതുവെ താഴെ പറയുന്ന ലിങ്ക് മതിയാകും:
+            if (cleanLink.includes("/d/")) {
+                fileId = cleanLink.split('/d/')[1].split('/')[0];
+            } else if (cleanLink.includes("id=")) {
+                fileId = cleanLink.split('id=')[1].split('&')[0];
+            }
+
+            if (fileId) {
+                // പ്ലെയർ സപ്പോർട്ട് ചെയ്യുന്ന ലിങ്ക്
                 cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
             }
         }
@@ -264,12 +267,20 @@ if (data.audioLinks) {
                     <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
                         <source src="${cleanLink}" type="audio/mpeg">
                         <source src="${cleanLink}" type="audio/wav">
-                        Your browser does not support the audio element.
                     </audio>
                 </div>`;
         }
     });
 }
+
+// 2. സംശയം ചോദിക്കാനുള്ള ബോക്സ് (ഇത് ആഡ് ചെയ്യുക)
+let doubtHTML = `
+    <div style="margin-top:15px; padding:10px; background:#fff3e0; border-radius:12px; border:1px dashed #ff9800;">
+        <p style="margin:0 0 5px 0; font-size:0.8rem; font-weight:bold; color:#e65100;">❓ സംശയങ്ങൾ ചോദിക്കാൻ:</p>
+        <textarea id="doubt-text-${doc.id}" placeholder="സംശയം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." style="width:100%; height:50px; border-radius:8px; border:1px solid #ccc; padding:8px; font-size:0.8rem;"></textarea>
+        <button onclick="submitDoubt('${doc.id}', '${data.chapter}')" style="background:#ff9800; color:white; border:none; border-radius:8px; padding:8px; margin-top:5px; width:100%; cursor:pointer; font-weight:bold;">Send Doubt</button>
+    </div>
+`;
 
             // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
             const dateObj = data.displayDate ? new Date(data.displayDate) : null;
@@ -1083,5 +1094,22 @@ async function finishExam() {
     } catch (e) {
         alert("റിസൾട്ട് സേവ് ചെയ്യുന്നതിൽ തകരാർ!");
     }
+}
+async function submitDoubt(docId, chapter) {
+    const text = document.getElementById(`doubt-text-${docId}`).value;
+    if(!text) return alert("സംശയം ടൈപ്പ് ചെയ്യുക!");
+
+    try {
+        await db.collection("doubts").add({
+            studentName: localStorage.getItem('studentName') || "Unknown",
+            semester: selectedSem,
+            chapter: chapter,
+            question: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            reply: ""
+        });
+        alert("നിങ്ങളുടെ സംശയം അയച്ചു!");
+        document.getElementById(`doubt-text-${docId}`).value = "";
+    } catch (e) { alert("Error: " + e.message); }
 }
 
