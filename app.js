@@ -243,16 +243,19 @@ function loadContents() {
 // 1. ഓഡിയോ പ്ലെയർ ഭാഗം
 let audioHTML = "";
 if (data.audioLinks) {
-    data.audioLinks.split(',').forEach((link, i) => {
+    // കോമ വഴിയോ സ്പേസ് വഴിയോ ലിങ്കുകളെ വേർതിരിക്കുന്നു
+    const links = data.audioLinks.match(/https?:\/\/[^\s,]+/g) || [];
+
+    links.forEach((link, i) => {
         let cleanLink = link.trim();
         if (cleanLink.includes("drive.google.com")) {
-            
-            // പുതിയ രീതി:Regex ഉപയോഗിച്ച് ഏത് ടൈപ്പ് ലിങ്കിൽ നിന്നും ID എടുക്കുന്നു
-            const match = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$)/);
+            // ഐഡി എടുക്കുമ്പോൾ വരാൻ സാധ്യതയുള്ള എല്ലാ തടസ്സങ്ങളും (usp, authuser) Regex വഴി ഒഴിവാക്കുന്നു
+            const match = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$|\?)/);
             const fileId = match ? (match[1] || match[2]) : null;
 
             if (fileId) {
-                cleanLink = `https://docs.google.com/uc?export=download&id=${fileId}`;
+                // പ്ലെയർ സപ്പോർട്ട് ചെയ്യുന്ന ഏറ്റവും ലളിതമായ ലിങ്ക് ഫോർമാറ്റ്
+                cleanLink = `https://docs.google.com/uc?id=${fileId}`;
             }
         }
 
@@ -260,8 +263,9 @@ if (data.audioLinks) {
             audioHTML += `
                 <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
                     <small style="font-size:12px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
-                    <audio controls preload="none" onplay="trackActivity('${doc.id}', 'Audio')" style="width:100%; height:40px; margin-top:5px;">
+                    <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
                         <source src="${cleanLink}" type="audio/mpeg">
+                        Your browser does not support the audio element.
                     </audio>
                 </div>`;
         }
