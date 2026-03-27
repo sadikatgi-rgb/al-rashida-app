@@ -307,6 +307,34 @@ let doubtHTML = `
     </div>
 `;
 
+// മറുപടികൾ കാണിക്കാനുള്ള വേരിയബിൾ
+let repliesHTML = "";
+
+// ശ്രദ്ധിക്കുക: loadContents-നുള്ളിൽ ഒരു async/await സ്ട്രക്ചർ ഇല്ലാത്തതിനാൽ 
+// ഓരോ കാർഡിനും ഉള്ളിൽ സംശയങ്ങൾ കാണിക്കാൻ താഴെ പറയുന്ന രീതി പരീക്ഷിക്കാം:
+
+const studentPhone = document.getElementById('email').value.trim(); // ലോഗിൻ ചെയ്ത നമ്പർ
+
+// ഈ ഭാഗം നിങ്ങളുടെ 'return' HTML-ന്റെ ഉള്ളിൽ ഒരു div ആയി നൽകാം.
+// അത് ലോഡ് ചെയ്യാൻ മറ്റൊരു ചെറിയ ഫങ്ക്ഷൻ താഴെ നൽകുന്നു.
+
+return `
+<div class="card" ...>
+    ... (നിങ്ങളുടെ പഴയ ഹെഡർ, വീഡിയോ, ഓഡിയോ ഭാഗങ്ങൾ) ...
+
+    <div id="replies-${doc.id}" style="margin-top:10px;">
+        <small style="color:#666;">സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു...</small>
+    </div>
+
+    ${!isAdmin ? doubtHTML : ''} 
+    ...
+</div>
+<script>
+    // ഈ കാർഡ് റെൻഡർ ചെയ്ത ഉടൻ ആ ക്ലാസിലെ സംശയങ്ങൾ ലോഡ് ചെയ്യാൻ
+    setTimeout(() => loadMyDoubts('${doc.id}', '${studentPhone}'), 500);
+</script>
+`;
+
             // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
             const dateObj = data.displayDate ? new Date(data.displayDate) : null;
             const formattedDate = dateObj ? dateObj.toLocaleString('en-GB', { 
