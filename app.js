@@ -123,40 +123,69 @@ async function login() {
     const placeInput = document.getElementById('student-place');
     const phoneInput = document.getElementById('email');
     const passInput = document.getElementById('password');
+    const studentInputs = document.getElementById('student-inputs'); // Container div
 
-    // വാല്യൂസ് എടുക്കുന്നു
-    const phone = phoneInput.value;
-    const pass = passInput.value;
-    const name = nameInput ? nameInput.value : "";
-    const place = placeInput ? placeInput.value : "";
+    const phone = phoneInput.value.trim();
+    const pass = passInput.value.trim();
+    
+    // പേരും സ്ഥലവും ഉള്ള ബോക്സ് നിലവിൽ കാണുന്നുണ്ടോ എന്ന് നോക്കുന്നു
+    const isNewUser = studentInputs.style.display !== "none";
+    
+    let name = isNewUser ? nameInput.value.trim() : "";
+    let place = isNewUser ? placeInput.value.trim() : "";
 
-    // 1. വാലിഡേഷൻ: അഡ്മിൻ അല്ലെങ്കിൽ മാത്രം പേരും സ്ഥലവും നിർബന്ധം
-    if (selectedSem !== 'admin' && (!name || !place || !phone || !pass)) {
-        alert("പേര്, സ്ഥലം, ഫോൺ നമ്പർ, പാസ്‌വേർഡ് എന്നിവ നിർബന്ധമാണ്");
-        return;
+    // 1. വാലിഡേഷൻ
+    if (selectedSem !== 'admin') {
+        if (!phone || !pass) {
+            alert("ഫോൺ നമ്പറും പാസ്‌വേർഡും നൽകുക");
+            return;
+        }
+        // പുതിയ കുട്ടിയാണെങ്കിൽ മാത്രം പേരും സ്ഥലവും നിർബന്ധമാക്കുന്നു
+        if (isNewUser && (!name || !place)) {
+            alert("പേരും സ്ഥലവും നൽകുക");
+            return;
+        }
     }
 
     // 2. ഇമെയിൽ ഫോർമാറ്റ് സെറ്റ് ചെയ്യുന്നു
-    let email;
-    if (selectedSem === 'admin') {
-        email = phone.includes("@") ? phone : phone + "@alrashida.com";
-    } else {
-        // ഉദാഹരണത്തിന്: 9876543210@s1.com
-        email = `${phone}@s${selectedSem}.com`;
-    }
+    let email = (selectedSem === 'admin') ? 
+                (phone.includes("@") ? phone : phone + "@alrashida.com") : 
+                `${phone}@s${selectedSem}.com`;
 
     try {
-        // 3. ഫയർബേസ് ലോഗിൻ ശ്രമിക്കുന്നു
-        await auth.signInWithEmailAndPassword(email, pass);
+        if (isNewUser && selectedSem !== 'admin') {
+            // --- പുതിയ വിദ്യാർത്ഥി: അക്കൗണ്ട് ഉണ്ടാക്കുന്നു (Registration) ---
+            await auth.createUserWithEmailAndPassword(email, pass);
+            
+            // Firestore-ൽ വിവരങ്ങൾ സേവ് ചെയ്യുന്നു
+            await db.collection("students").doc(phone).set({
+                name: name,
+                place: place,
+                phone: phone,
+                semester: parseInt(selectedSem),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } else {
+            // --- പഴയ വിദ്യാർത്ഥി അല്ലെങ്കിൽ അഡ്മിൻ: ലോഗിൻ ചെയ്യുന്നു ---
+            await auth.signInWithEmailAndPassword(email, pass);
+            
+            // പഴയ കുട്ടിയാണെങ്കിൽ ഡാറ്റാബേസിൽ നിന്ന് പേരും സ്ഥലവും എടുക്കുന്നു
+            if (selectedSem !== 'admin') {
+                const doc = await db.collection("students").doc(phone).get();
+                if (doc.exists) {
+                    name = doc.data().name;
+                    place = doc.data().place;
+                }
+            }
+        }
 
-        // 4. ലോഗിൻ സക്സസ് ആയാൽ ഉടൻ ഫോം ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുന്നു
+        // 4. ലോഗിൻ സക്സസ് ആയാൽ ഫീൽഡുകൾ ക്ലിയർ ചെയ്യുന്നു
         if (nameInput) nameInput.value = "";
         if (placeInput) placeInput.value = "";
         phoneInput.value = "";
         passInput.value = "";
 
-        // 5. ലോഗിൻ സ്റ്റാറ്റസും പേരും സ്ഥലവും ലോക്കൽ സ്റ്റോറേജിൽ സേവ് ചെയ്യുന്നു
-        // (ഇത് ആപ്പിൽ നിന്ന് എക്സിറ്റ് ആയി വന്നാലും ലോഗിൻ നിലനിർത്താൻ സഹായിക്കും)
+        // 5. ലോക്കൽ സ്റ്റോറേജിൽ സേവ് ചെയ്യുന്നു
         if (selectedSem !== 'admin') {
             localStorage.setItem(`isLoggedIn_S${selectedSem}`, "true");
             localStorage.setItem(`studentName`, name);
@@ -171,21 +200,18 @@ async function login() {
             showSection('admin-screen');
         } else {
             showSection('student-screen');
-            // നിങ്ങളുടെ സ്റ്റുഡന്റ് ആപ്പ് ലോഡ് ചെയ്യുന്ന ഫങ്ക്ഷൻ
             if (typeof initStudentApp === 'function') initStudentApp();
             loadContents(); 
         }
 
-        // 7. ലോഗ് ഔട്ട് ബട്ടണുകൾ കാണിക്കുന്നു
         document.getElementById('logout-btn').style.display = 'block';
-        const logoutSidebar = document.getElementById('logout-btn-sidebar');
-        if(logoutSidebar) logoutSidebar.style.display = 'block';
 
     } catch (e) { 
         console.error("Login Error:", e);
-        alert("ലോഗിൻ പരാജയപ്പെട്ടു: നിങ്ങളുടെ സെമസ്റ്ററോ വിവരങ്ങളോ പരിശോധിക്കുക!"); 
+        alert("ലോഗിൻ പരാജയപ്പെട്ടു: വിവരങ്ങൾ പരിശോധിക്കുക!"); 
     }
 }
+
 
 // --- 4. STUDENT & CONTENT LOGIC ---
 function initStudentApp() {
