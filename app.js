@@ -229,7 +229,9 @@ function initStudentApp() {
         }
     });
 }
-function loadContents() {
+
+        
+          function loadContents() {
     const display = document.getElementById('content-display');
     const adminPanel = document.getElementById('admin-semester-tools');
     const isAdmin = auth.currentUser && auth.currentUser.email && auth.currentUser.email.includes('admin');
@@ -265,88 +267,47 @@ function loadContents() {
                 });
             }
 
-            // 3. ഓഡിയോ പ്ലെയറുകൾ (Google Drive Support ഉൾപ്പെടെ)
-// 1. ഓഡിയോ പ്ലെയർ ഭാഗം
-let audioHTML = "";
-if (data.audioLinks) {
-    // കോമ വഴിയോ സ്പേസ് വഴിയോ ലിങ്കുകളെ വേർതിരിക്കുന്നു
-    const links = data.audioLinks.match(/https?:\/\/[^\s,]+/g) || [];
-
-    links.forEach((link, i) => {
-        let cleanLink = link.trim();
-        if (cleanLink.includes("drive.google.com")) {
-            // ഐഡി എടുക്കുമ്പോൾ വരാൻ സാധ്യതയുള്ള എല്ലാ തടസ്സങ്ങളും (usp, authuser) Regex വഴി ഒഴിവാക്കുന്നു
-            const match = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$|\?)/);
-            const fileId = match ? (match[1] || match[2]) : null;
-
-            if (fileId) {
-                // പ്ലെയർ സപ്പോർട്ട് ചെയ്യുന്ന ഏറ്റവും ലളിതമായ ലിങ്ക് ഫോർമാറ്റ്
-                cleanLink = `https://docs.google.com/uc?id=${fileId}`;
-            }
-        }
-
-        if(cleanLink) {
-            audioHTML += `
-                <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
-                    <small style="font-size:12px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
-                    <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
-                        <source src="${cleanLink}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                </div>`;
-        }
-    });
-}
-
-// 2. സംശയം ചോദിക്കാനുള്ള ബോക്സ് (ഇത് ആഡ് ചെയ്യുക)
-let doubtHTML = `
-    <div style="margin-top:15px; padding:10px; background:#fff3e0; border-radius:12px; border:1px dashed #ff9800;">
-        <p style="margin:0 0 5px 0; font-size:0.8rem; font-weight:bold; color:#e65100;">❓ സംശയങ്ങൾ ചോദിക്കാൻ:</p>
-        <textarea id="doubt-text-${doc.id}" placeholder="സംശയം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." style="width:100%; height:50px; border-radius:8px; border:1px solid #ccc; padding:8px; font-size:0.8rem;"></textarea>
-        <button onclick="submitDoubt('${doc.id}', '${data.chapter}')" style="background:#ff9800; color:white; border:none; border-radius:8px; padding:8px; margin-top:5px; width:100%; cursor:pointer; font-weight:bold;">Send Doubt</button>
-    </div>
-`;
-
-                // ... (മുകളിലെ വീഡിയോ, പിഡിഎഫ്, ഓഡിയോ ഭാഗങ്ങൾ)
-
-                <div style="margin-top:12px;">${audioHTML}</div>
-
-                <div id="replies-${doc.id}" style="margin-top:10px;"></div>
-
-                ${!isAdmin ? doubtHTML : ''} 
-
-                ${isAdmin ? `
-                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:8px; flex-wrap: wrap;">
-                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" ...>📊 Track</button>
-                        <button onclick="openEditContent('${doc.id}')" ...>📝 Edit</button>
-                        <button onclick="deleteContent('${doc.id}')" ...>🗑️ Delete</button>
-                    </div>
-                ` : ''}          
-            </div>
-            
-            <script>
-                setTimeout(() => {
-                    const userPhone = document.getElementById('email').value.trim();
-                    if(userPhone && typeof loadMyDoubts === 'function') {
-                        loadMyDoubts('${doc.id}', userPhone);
+            // 3. ഓഡിയോ പ്ലെയറുകൾ
+            let audioHTML = "";
+            if (data.audioLinks) {
+                const links = data.audioLinks.match(/https?:\/\/[^\s,]+/g) || [];
+                links.forEach((link, i) => {
+                    let cleanLink = link.trim();
+                    if (cleanLink.includes("drive.google.com")) {
+                        const match = cleanLink.match(/\/d\/(.+?)\/|id=(.+?)(&|$|\?)/);
+                        const fileId = match ? (match[1] || match[2]) : null;
+                        if (fileId) cleanLink = `https://docs.google.com/uc?id=${fileId}`;
                     }
-                }, 500);
-            </script>
-            `; // return ഇവിടെ അവസാനിക്കുന്നു
-        }).join('');
-    });
-}
 
-            // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
+                    if(cleanLink) {
+                        audioHTML += `
+                            <div style="background:#f9f9f9; padding:10px; border-radius:12px; margin-top:10px; border:1px solid #eee;">
+                                <small style="font-size:12px; color:#2e7d32; font-weight:bold;">🎧 Voice Part ${i+1}</small>
+                                <audio controls preload="metadata" style="width:100%; height:40px; margin-top:5px;">
+                                    <source src="${cleanLink}" type="audio/mpeg">
+                                </audio>
+                            </div>`;
+                    }
+                });
+            }
+
+            // 4. സംശയം ചോദിക്കാനുള്ള ബോക്സ്
+            let doubtHTML = `
+                <div style="margin-top:15px; padding:10px; background:#fff3e0; border-radius:12px; border:1px dashed #ff9800;">
+                    <p style="margin:0 0 5px 0; font-size:0.8rem; font-weight:bold; color:#e65100;">❓ സംശയങ്ങൾ ചോദിക്കാൻ:</p>
+                    <textarea id="doubt-text-${doc.id}" placeholder="സംശയം ഇവിടെ ടൈപ്പ് ചെയ്യുക..." style="width:100%; height:50px; border-radius:8px; border:1px solid #ccc; padding:8px; font-size:0.8rem;"></textarea>
+                    <button onclick="submitDoubt('${doc.id}', '${data.chapter}')" style="background:#ff9800; color:white; border:none; border-radius:8px; padding:8px; margin-top:5px; width:100%; cursor:pointer; font-weight:bold;">Send Doubt</button>
+                </div>
+            `;
+
+            // 5. തീയതി ഫോർമാറ്റ്
             const dateObj = data.displayDate ? new Date(data.displayDate) : null;
             const formattedDate = dateObj ? dateObj.toLocaleString('en-GB', { 
                 day: '2-digit', month: '2-digit', year: 'numeric', 
                 hour: '2-digit', minute: '2-digit', hour12: true 
             }) : 'No Date';
 
-            // ... (മുകളിലെ വീഡിയോ, പിഡിഎഫ് ഭാഗങ്ങൾ അങ്ങനെ തന്നെ വെക്കുക)
-
-            // 5. ഫൈനൽ ഔട്ട്പുട്ട് (HTML Card)
+            // 6. ഫൈനൽ ഔട്ട്പുട്ട് (Card HTML)
             return `
             <div class="card" style="border-left: 5px solid ${isAdmin ? '#4caf50' : 'var(--main)'}; margin-bottom:15px; padding:15px; background:white; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -364,19 +325,32 @@ let doubtHTML = `
 
                 <div style="margin-top:12px;">${audioHTML}</div>
 
+                <div id="replies-${doc.id}" style="margin-top:10px;"></div>
+
                 ${!isAdmin ? doubtHTML : ''} 
 
                 ${isAdmin ? `
                     <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:8px; flex-wrap: wrap;">
-                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">📊 Track</button>
-                        <button onclick="openEditContent('${doc.id}')" style="background:#ffd600; color:#333; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px; font-weight:bold;">📝 Edit</button>
-                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1; display:flex; align-items:center; justify-content:center; gap:5px;">🗑️ Delete</button>
+                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" style="background:#1976d2; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1;">📊 Track</button>
+                        <button onclick="openEditContent('${doc.id}')" style="background:#ffd600; color:#333; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1;">📝 Edit</button>
+                        <button onclick="deleteContent('${doc.id}')" style="background:#f44336; color:white; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:0.75rem; flex:1;">🗑️ Delete</button>
                     </div>
                 ` : ''}          
-            </div>`;
+            </div>
+            <script>
+                // കാർഡ് ലോഡ് ആയ ശേഷം സംശയങ്ങൾ ഉണ്ടോ എന്ന് നോക്കുന്നു
+                setTimeout(() => {
+                    const userPhone = document.getElementById('email').value.trim();
+                    if(userPhone && typeof loadMyDoubts === 'function') {
+                        loadMyDoubts('${doc.id}', userPhone);
+                    }
+                }, 800);
+            </script>`;
         }).join('');
     });
 }
+  
+            
 // loadContents ഫങ്ക്ഷൻ കഴിഞ്ഞ ഉടനെ ഇത് പേസ്റ്റ് ചെയ്യുക
 function loadMyDoubts(contentId, phone) {
     const replyDiv = document.getElementById(`replies-${contentId}`);
