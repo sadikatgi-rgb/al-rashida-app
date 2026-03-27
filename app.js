@@ -307,33 +307,35 @@ let doubtHTML = `
     </div>
 `;
 
-// മറുപടികൾ കാണിക്കാനുള്ള വേരിയബിൾ
-let repliesHTML = "";
+                // ... (മുകളിലെ വീഡിയോ, പിഡിഎഫ്, ഓഡിയോ ഭാഗങ്ങൾ)
 
-// ശ്രദ്ധിക്കുക: loadContents-നുള്ളിൽ ഒരു async/await സ്ട്രക്ചർ ഇല്ലാത്തതിനാൽ 
-// ഓരോ കാർഡിനും ഉള്ളിൽ സംശയങ്ങൾ കാണിക്കാൻ താഴെ പറയുന്ന രീതി പരീക്ഷിക്കാം:
+                <div style="margin-top:12px;">${audioHTML}</div>
 
-const studentPhone = document.getElementById('email').value.trim(); // ലോഗിൻ ചെയ്ത നമ്പർ
+                <div id="replies-${doc.id}" style="margin-top:10px;"></div>
 
-// ഈ ഭാഗം നിങ്ങളുടെ 'return' HTML-ന്റെ ഉള്ളിൽ ഒരു div ആയി നൽകാം.
-// അത് ലോഡ് ചെയ്യാൻ മറ്റൊരു ചെറിയ ഫങ്ക്ഷൻ താഴെ നൽകുന്നു.
+                ${!isAdmin ? doubtHTML : ''} 
 
-return `
-<div class="card" ...>
-    ... (നിങ്ങളുടെ പഴയ ഹെഡർ, വീഡിയോ, ഓഡിയോ ഭാഗങ്ങൾ) ...
-
-    <div id="replies-${doc.id}" style="margin-top:10px;">
-        <small style="color:#666;">സംശയങ്ങൾ ലോഡ് ചെയ്യുന്നു...</small>
-    </div>
-
-    ${!isAdmin ? doubtHTML : ''} 
-    ...
-</div>
-<script>
-    // ഈ കാർഡ് റെൻഡർ ചെയ്ത ഉടൻ ആ ക്ലാസിലെ സംശയങ്ങൾ ലോഡ് ചെയ്യാൻ
-    setTimeout(() => loadMyDoubts('${doc.id}', '${studentPhone}'), 500);
-</script>
-`;
+                ${isAdmin ? `
+                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px; display:flex; gap:8px; flex-wrap: wrap;">
+                        <button onclick="viewTracking('${doc.id}', '${data.chapter}')" ...>📊 Track</button>
+                        <button onclick="openEditContent('${doc.id}')" ...>📝 Edit</button>
+                        <button onclick="deleteContent('${doc.id}')" ...>🗑️ Delete</button>
+                    </div>
+                ` : ''}          
+            </div>
+            
+            <script>
+                setTimeout(() => {
+                    const userPhone = document.getElementById('email').value.trim();
+                    if(userPhone && typeof loadMyDoubts === 'function') {
+                        loadMyDoubts('${doc.id}', userPhone);
+                    }
+                }, 500);
+            </script>
+            `; // return ഇവിടെ അവസാനിക്കുന്നു
+        }).join('');
+    });
+}
 
             // 4. തീയതി ഭംഗിയായി കാണിക്കാൻ (Date formatting)
             const dateObj = data.displayDate ? new Date(data.displayDate) : null;
@@ -374,6 +376,38 @@ return `
             </div>`;
         }).join('');
     });
+}
+// loadContents ഫങ്ക്ഷൻ കഴിഞ്ഞ ഉടനെ ഇത് പേസ്റ്റ് ചെയ്യുക
+function loadMyDoubts(contentId, phone) {
+    const replyDiv = document.getElementById(`replies-${contentId}`);
+    if (!replyDiv) return;
+
+    db.collection("doubts")
+        .where("contentId", "==", contentId)
+        .where("phone", "==", phone) //
+        .onSnapshot(snap => {
+            if (snap.empty) {
+                replyDiv.innerHTML = ""; 
+                return;
+            }
+
+            let html = '<div style="border-top:1px dashed #ccc; padding-top:10px; margin-bottom:10px;">';
+            html += '<p style="font-size:0.8rem; font-weight:bold; color:#004d40;">💬 നിങ്ങളുടെ സംശയങ്ങൾ:</p>';
+            
+            snap.forEach(doc => {
+                const data = doc.data();
+                html += `
+                <div style="background:#f9f9f9; padding:8px; border-radius:8px; border:1px solid #eee; margin-bottom:5px; font-size:0.85rem;">
+                    <p style="margin:0;"><b>ചോദ്യം:</b> ${data.doubtText}</p>
+                    ${data.reply ? 
+                        `<p style="margin:5px 0 0 0; color:#2e7d32; font-weight:bold;">✅ മറുപടി: ${data.reply}</p>` : 
+                        `<p style="margin:5px 0 0 0; color:#ef6c00; font-size:0.75rem;">⏳ മറുപടിക്കായി കാത്തിരിക്കുന്നു...</p>`
+                    }
+                </div>`;
+            });
+            html += '</div>';
+            replyDiv.innerHTML = html; //
+        });
 }
 
 // --- 5. അഡ്മിൻ ഫങ്ക്ഷനുകൾ (ADMIN FUNCTIONS) ---
