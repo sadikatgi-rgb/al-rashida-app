@@ -92,21 +92,22 @@
         </div>
 
         <div id="login-screen" class="container" style="display:none;">
-            <div class="card">
-                <h2 id="login-title" style="text-align:center;">Login</h2>
-                
-                <div id="student-inputs">
-                    <input type="text" id="student-name" placeholder="Full Name">
-                    <input type="text" id="student-place" placeholder="Place">
-                </div>
+    <div class="card">
+        <h2 id="login-title" style="text-align:center;">Login</h2>
+        
+        <input type="number" id="email" placeholder="Phone Number" oninput="checkUserStatus()">
 
-                <input type="text" id="email" placeholder="Phone">
-                <input type="password" id="password" placeholder="Password">
-                
-                <button onclick="login()" class="primary-btn">Login</button>
-                <button onclick="showSection('home-screen')" class="back-home-btn">Back</button>
-            </div>
+        <div id="student-inputs">
+            <input type="text" id="student-name" placeholder="Full Name">
+            <input type="text" id="student-place" placeholder="Place">
         </div>
+
+        <input type="password" id="password" placeholder="Password">
+        
+        <button onclick="login()" class="primary-btn">Login</button>
+        <button onclick="showSection('home-screen')" class="back-home-btn">Back</button>
+    </div>
+</div>
 
                 <div id="admin-screen" class="container" style="display:none;">
     <div class="card">
