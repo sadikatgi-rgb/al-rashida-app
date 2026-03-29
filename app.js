@@ -115,6 +115,29 @@ function showAdminLogin() {
     showSection('login-screen');
     closeNav();
 }
+async function checkUserStatus() {
+    const emailInput = document.getElementById('email');
+    const phone = emailInput.value.trim();
+    const studentInputs = document.getElementById('student-inputs');
+
+    // അഡ്മിൻ ലോഗിൻ ആണെങ്കിൽ പേരും സ്ഥലവും ബോക്സുകൾ കാണിക്കേണ്ടതില്ല
+    if (selectedSem === 'admin') {
+        if(studentInputs) studentInputs.style.display = "none";
+        return;
+    }
+
+    // 10 അക്ക നമ്പറായാൽ പഴയ കുട്ടിയാണോ എന്ന് നോക്കുന്നു
+    if (phone.length >= 10) {
+        const doc = await db.collection("students").doc(phone).get();
+        if (doc.exists) {
+            // പഴയ കുട്ടിയാണെങ്കിൽ പേരും സ്ഥലവും തനിയെ മറയുന്നു
+            if(studentInputs) studentInputs.style.display = "none";
+        } else {
+            // പുതിയ കുട്ടിയാണെങ്കിൽ മാത്രം ഇത് കാണിക്കുന്നു
+            if(studentInputs) studentInputs.style.display = "block";
+        }
+    }
+}
 
 // --- 3. LOGIN FUNCTION ---
 
